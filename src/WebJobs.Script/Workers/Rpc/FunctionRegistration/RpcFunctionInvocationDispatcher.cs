@@ -297,6 +297,13 @@ namespace Microsoft.Azure.WebJobs.Script.Workers.Rpc
                 _processStartupInterval = _workerConfigs.Max(wc => wc.CountOptions.ProcessStartupInterval);
                 _restartWait = _workerConfigs.Max(wc => wc.CountOptions.ProcessRestartInterval);
                 _shutdownTimeout = _workerConfigs.Max(wc => wc.CountOptions.ProcessShutdownTimeout);
+
+                if (_workerConfigs.Any(workerConfig => workerConfig.Description.IsPalEmulated))
+                {
+                    _processStartupInterval.Add(TimeSpan.FromMinutes(1));
+                    _restartWait.Add(TimeSpan.FromMinutes(1));
+                    _shutdownTimeout.Add(TimeSpan.FromMinutes(1));
+                }
             }
             else
             {

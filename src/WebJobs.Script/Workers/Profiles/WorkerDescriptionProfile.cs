@@ -81,6 +81,9 @@ namespace Microsoft.Azure.WebJobs.Script.Workers.Profiles
             updatedDescription.Extensions = UseProfileOrDefault(ProfileDescription.Extensions, defaultWorkerDescription.Extensions) as List<string>;
             updatedDescription.Language = UseProfileOrDefault(ProfileDescription.Language, defaultWorkerDescription.Language);
             updatedDescription.WorkerDirectory = UseProfileOrDefault(ProfileDescription.WorkerDirectory, defaultWorkerDescription.WorkerDirectory);
+            updatedDescription.IsPalEmulated = ProfileDescription.IsPalEmulated || defaultWorkerDescription.IsPalEmulated;
+            updatedDescription.PalPackagePath = UseProfileOrDefault(ProfileDescription.PalPackagePath, defaultWorkerDescription.PalPackagePath);
+            updatedDescription.PalExePath = UseProfileOrDefault(ProfileDescription.PalExePath, defaultWorkerDescription.PalExePath);
             return updatedDescription;
         }
 

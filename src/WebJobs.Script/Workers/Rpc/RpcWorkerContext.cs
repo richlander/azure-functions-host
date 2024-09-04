@@ -10,12 +10,13 @@ namespace Microsoft.Azure.WebJobs.Script.Workers.Rpc
     internal class RpcWorkerContext : WorkerContext
     {
         public RpcWorkerContext(string requestId,
-                int maxMessageLength,
-                string workerId,
-                WorkerProcessArguments workerProcessArguments,
-                string workingDirectory,
-                Uri serverUri,
-                IDictionary<string, string> environmentVariables = null)
+            int maxMessageLength,
+            string workerId,
+            WorkerProcessArguments workerProcessArguments,
+            string workingDirectory,
+            Uri serverUri,
+            IDictionary<string, string> environmentVariables = null,
+            bool palEmulated = false)
         {
             if (serverUri == null)
             {
@@ -26,7 +27,8 @@ namespace Microsoft.Azure.WebJobs.Script.Workers.Rpc
                 throw new InvalidOperationException($"{nameof(ServerUri.Host)} is null");
             }
 
-            RequestId = requestId;
+            this.PalEmulated = palEmulated;
+            this.RequestId = requestId;
             MaxMessageLength = RpcWorkerConstants.DefaultMaxMessageLengthBytes;
             WorkerId = workerId;
             Arguments = workerProcessArguments;
@@ -37,6 +39,11 @@ namespace Microsoft.Azure.WebJobs.Script.Workers.Rpc
                 EnvironmentVariables = environmentVariables;
             }
         }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether palrun emulation should be performed.
+        /// </summary>
+        public bool PalEmulated { get; set; }
 
         public Uri ServerUri { get; set; }
 
