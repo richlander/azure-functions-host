@@ -191,6 +191,14 @@ namespace Microsoft.Azure.WebJobs.Script.Config
             }
         }
 
+        internal bool IsDotNetInProcDisabled
+        {
+            get
+            {
+                return GetFeatureAsBooleanOrDefault(ScriptConstants.HostingConfigDotNetInProcDisabled, false);
+            }
+        }
+
         /// <summary>
         /// Gets feature by name.
         /// </summary>
