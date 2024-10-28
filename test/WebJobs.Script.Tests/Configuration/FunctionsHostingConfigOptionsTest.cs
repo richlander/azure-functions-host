@@ -141,7 +141,7 @@ namespace Microsoft.Azure.WebJobs.Script.Tests.Configuration
             FunctionsHostingConfigOptions options = new FunctionsHostingConfigOptions();
 
             // defaults to true
-            Assert.True(options.RestrictHostLogs);
+            Assert.False(options.RestrictHostLogs);
 
             // returns true when explicitly enabled
             options.Features[ScriptConstants.HostingConfigRestrictHostLogs] = "1";
