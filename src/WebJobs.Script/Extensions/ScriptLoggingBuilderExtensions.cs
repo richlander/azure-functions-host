@@ -16,16 +16,27 @@ namespace Microsoft.Extensions.Logging
     public static class ScriptLoggingBuilderExtensions
     {
         private static ConcurrentDictionary<string, bool> _filteredCategoryCache = new ConcurrentDictionary<string, bool>();
+        private static ImmutableArray<string> _systemLogCategoryPrefixes = ScriptConstants.SystemLogCategoryPrefixes;
 
-        public static ILoggingBuilder AddDefaultWebJobsFilters(this ILoggingBuilder builder)
+        public static ILoggingBuilder AddDefaultWebJobsFilters(this ILoggingBuilder builder, bool restrictHostLogs = false)
         {
+            if (restrictHostLogs)
+            {
+                _systemLogCategoryPrefixes = ScriptConstants.RestrictedSystemLogCategoryPrefixes;
+            }
+
             builder.SetMinimumLevel(LogLevel.None);
             builder.AddFilter((c, l) => Filter(c, l, LogLevel.Information));
             return builder;
         }
 
-        public static ILoggingBuilder AddDefaultWebJobsFilters<T>(this ILoggingBuilder builder, LogLevel level) where T : ILoggerProvider
+        public static ILoggingBuilder AddDefaultWebJobsFilters<T>(this ILoggingBuilder builder, LogLevel level, bool restrictHostLogs = false) where T : ILoggerProvider
         {
+            if (restrictHostLogs)
+            {
+                _systemLogCategoryPrefixes = ScriptConstants.RestrictedSystemLogCategoryPrefixes;
+            }
+
             builder.AddFilter<T>(null, LogLevel.None);
             builder.AddFilter<T>((c, l) => Filter(c, l, level));
             return builder;
@@ -38,11 +49,7 @@ namespace Microsoft.Extensions.Logging
 
         private static bool IsFiltered(string category)
         {
-            ImmutableArray<string> systemLogCategoryPrefixes = FeatureFlags.IsEnabled(ScriptConstants.FeatureFlagEnableHostLogs)
-                                                                ? ScriptConstants.SystemLogCategoryPrefixes
-                                                                : ScriptConstants.RestrictedSystemLogCategoryPrefixes;
-
-            return _filteredCategoryCache.GetOrAdd(category, c => systemLogCategoryPrefixes.Any(p => category.StartsWith(p)));
+            return _filteredCategoryCache.GetOrAdd(category, c => _systemLogCategoryPrefixes.Any(p => category.StartsWith(p)));
         }
 
         public static void AddConsoleIfEnabled(this ILoggingBuilder builder, HostBuilderContext context)
