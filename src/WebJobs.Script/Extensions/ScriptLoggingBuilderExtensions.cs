@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.WebJobs.Script;
-using Microsoft.Azure.WebJobs.Script.Config;
 using Microsoft.Azure.WebJobs.Script.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -15,7 +14,6 @@ namespace Microsoft.Extensions.Logging
 {
     public static class ScriptLoggingBuilderExtensions
     {
-        private static ConcurrentDictionary<string, bool> _filteredCategoryCache = new ConcurrentDictionary<string, bool>();
 
         public static ILoggingBuilder AddDefaultWebJobsFilters(this ILoggingBuilder builder)
         {
@@ -33,16 +31,7 @@ namespace Microsoft.Extensions.Logging
 
         internal static bool Filter(string category, LogLevel actualLevel, LogLevel minLevel)
         {
-            return actualLevel >= minLevel && IsFiltered(category);
-        }
-
-        private static bool IsFiltered(string category)
-        {
-            ImmutableArray<string> systemLogCategoryPrefixes = FeatureFlags.IsEnabled(ScriptConstants.FeatureFlagEnableHostLogs)
-                                                                ? ScriptConstants.SystemLogCategoryPrefixes
-                                                                : ScriptConstants.RestrictedSystemLogCategoryPrefixes;
-
-            return _filteredCategoryCache.GetOrAdd(category, c => systemLogCategoryPrefixes.Any(p => category.StartsWith(p)));
+            return actualLevel >= minLevel;
         }
 
         public static void AddConsoleIfEnabled(this ILoggingBuilder builder, HostBuilderContext context)
