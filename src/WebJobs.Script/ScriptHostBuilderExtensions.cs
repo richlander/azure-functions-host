@@ -82,7 +82,7 @@ namespace Microsoft.Azure.WebJobs.Script
             builder.ConfigureLogging((context, loggingBuilder) =>
             {
                 var functionsHostingConfig = applicationOptions.RootServiceProvider.GetService<IOptions<FunctionsHostingConfigOptions>>();
-                var shouldRestrictHostLogs = RestrictHostLogs(functionsHostingConfig);
+                var shouldRestrictHostLogs = RestrictHostLogs(functionsHostingConfig.Value);
                 loggingBuilder.AddDefaultWebJobsFilters(shouldRestrictHostLogs);
 
                 string loggingPath = ConfigurationPath.Combine(ConfigurationSectionNames.JobHost, "Logging");
