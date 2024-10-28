@@ -33,6 +33,9 @@ namespace Microsoft.Azure.WebJobs.Script.Config
                     }
                 }
             }
+
+            // Set to true on configuration to restrict host logs
+            options.RestrictHostLogs = true;
         }
     }
 }
