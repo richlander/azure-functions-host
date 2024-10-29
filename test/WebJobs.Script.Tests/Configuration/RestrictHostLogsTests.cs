@@ -42,13 +42,11 @@ namespace Microsoft.Azure.WebJobs.Script.Tests.Configuration
         {
             using (TempDirectory tempDir = new TempDirectory())
             {
-                //TestEnvironment environment = new ();
                 string fileName = Path.Combine(tempDir.Path, "settings.txt");
                 string fileContent = restrictHostLogs ? string.Empty : $"{ScriptConstants.HostingConfigRestrictHostLogs}=false";
 
                 if (setFeatureFlag)
                 {
-                    //environment.SetEnvironmentVariable(EnvironmentSettingNames.AzureWebJobsFeatureFlags, ScriptConstants.FeatureFlagEnableHostLogs);
                     Environment.SetEnvironmentVariable(EnvironmentSettingNames.AzureWebJobsFeatureFlags, ScriptConstants.FeatureFlagEnableHostLogs);
                 }
 
