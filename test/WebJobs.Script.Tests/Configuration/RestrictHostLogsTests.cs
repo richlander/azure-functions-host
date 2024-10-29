@@ -56,7 +56,7 @@ namespace Microsoft.Azure.WebJobs.Script.Tests.Configuration
                 await Task.Delay(1000);
 
                 Assert.Equal(restrictHostLogs, testService.Options.Value.RestrictHostLogs);
-                Assert.Equal(setFeatureFlag, FeatureFlags.IsEnabled(ScriptConstants.FeatureFlagEnableHostLogs));
+                Assert.Equal(setFeatureFlag, FeatureFlags.IsEnabled(ScriptConstants.FeatureFlagEnableHostLogs, environment));
 
                 var result = typeof(ScriptLoggingBuilderExtensions).GetField("_systemLogCategoryPrefixes", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
 
