@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.WebJobs.Script;
-using Microsoft.Azure.WebJobs.Script.Config;
 using Microsoft.Azure.WebJobs.Script.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -20,10 +19,7 @@ namespace Microsoft.Extensions.Logging
 
         public static ILoggingBuilder AddDefaultWebJobsFilters(this ILoggingBuilder builder, bool restrictHostLogs = false)
         {
-            if (restrictHostLogs)
-            {
-                _systemLogCategoryPrefixes = ScriptConstants.RestrictedSystemLogCategoryPrefixes;
-            }
+            SetSystemLogCategoryPrefixes(restrictHostLogs);
 
             builder.SetMinimumLevel(LogLevel.None);
             builder.AddFilter((c, l) => Filter(c, l, LogLevel.Information));
@@ -32,10 +28,7 @@ namespace Microsoft.Extensions.Logging
 
         public static ILoggingBuilder AddDefaultWebJobsFilters<T>(this ILoggingBuilder builder, LogLevel level, bool restrictHostLogs = false) where T : ILoggerProvider
         {
-            if (restrictHostLogs)
-            {
-                _systemLogCategoryPrefixes = ScriptConstants.RestrictedSystemLogCategoryPrefixes;
-            }
+            SetSystemLogCategoryPrefixes(restrictHostLogs);
 
             builder.AddFilter<T>(null, LogLevel.None);
             builder.AddFilter<T>((c, l) => Filter(c, l, level));
@@ -50,6 +43,14 @@ namespace Microsoft.Extensions.Logging
         private static bool IsFiltered(string category)
         {
             return _filteredCategoryCache.GetOrAdd(category, c => _systemLogCategoryPrefixes.Any(p => category.StartsWith(p)));
+        }
+
+        private static void SetSystemLogCategoryPrefixes(bool restrictHostLogs)
+        {
+            if (restrictHostLogs)
+            {
+                _systemLogCategoryPrefixes = ScriptConstants.RestrictedSystemLogCategoryPrefixes;
+            }
         }
 
         public static void AddConsoleIfEnabled(this ILoggingBuilder builder, HostBuilderContext context)

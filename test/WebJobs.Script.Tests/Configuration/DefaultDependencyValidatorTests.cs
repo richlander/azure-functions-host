@@ -36,12 +36,12 @@ namespace Microsoft.Azure.WebJobs.Script.Tests.Configuration
         [Fact]
         public async Task Validator_InvalidServices_LogsError()
         {
-            var environment = new TestEnvironment();
-            environment.SetEnvironmentVariable(EnvironmentSettingNames.AzureWebJobsFeatureFlags, ScriptConstants.FeatureFlagEnableHostLogs);
+            //var environment = new TestEnvironment();
+            Environment.SetEnvironmentVariable(EnvironmentSettingNames.AzureWebJobsFeatureFlags, ScriptConstants.FeatureFlagEnableHostLogs);
 
             LogMessage invalidServicesMessage = await RunTest(configureWebHost: w =>
             {
-                w.AddSingleton<IEnvironment>(environment);
+               // w.AddSingleton<IEnvironment>(environment);
             },
             configureJobHost: s =>
             {

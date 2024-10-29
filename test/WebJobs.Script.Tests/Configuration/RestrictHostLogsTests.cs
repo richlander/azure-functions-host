@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -27,6 +28,8 @@ namespace Microsoft.Azure.WebJobs.Script.Tests.Configuration
             typeof(ScriptLoggingBuilderExtensions)
                 .GetField("_systemLogCategoryPrefixes", BindingFlags.Static | BindingFlags.NonPublic)
                 .SetValue(null, ScriptConstants.SystemLogCategoryPrefixes);
+
+            Environment.SetEnvironmentVariable(EnvironmentSettingNames.AzureWebJobsFeatureFlags, null);
             return Task.CompletedTask;
         }
 
@@ -39,25 +42,26 @@ namespace Microsoft.Azure.WebJobs.Script.Tests.Configuration
         {
             using (TempDirectory tempDir = new TempDirectory())
             {
-                TestEnvironment environment = new ();
+                //TestEnvironment environment = new ();
                 string fileName = Path.Combine(tempDir.Path, "settings.txt");
                 string fileContent = restrictHostLogs ? string.Empty : $"{ScriptConstants.HostingConfigRestrictHostLogs}=false";
 
                 if (setFeatureFlag)
                 {
-                    environment.SetEnvironmentVariable(EnvironmentSettingNames.AzureWebJobsFeatureFlags, ScriptConstants.FeatureFlagEnableHostLogs);
+                    //environment.SetEnvironmentVariable(EnvironmentSettingNames.AzureWebJobsFeatureFlags, ScriptConstants.FeatureFlagEnableHostLogs);
+                    Environment.SetEnvironmentVariable(EnvironmentSettingNames.AzureWebJobsFeatureFlags, ScriptConstants.FeatureFlagEnableHostLogs);
                 }
 
-                IHost host = GetScriptHostBuilder(fileName, fileContent, environment).Build();
+                IHost host = GetScriptHostBuilder(fileName, fileContent).Build();
                 var testService = host.Services.GetService<TestService>();
 
                 await host.StartAsync();
                 await Task.Delay(1000);
 
                 Assert.Equal(restrictHostLogs, testService.Options.Value.RestrictHostLogs);
-                Assert.Equal(setFeatureFlag, FeatureFlags.IsEnabled(ScriptConstants.FeatureFlagEnableHostLogs, environment));
+                Assert.Equal(setFeatureFlag, FeatureFlags.IsEnabled(ScriptConstants.FeatureFlagEnableHostLogs));
 
-                var result = typeof(ScriptLoggingBuilderExtensions).GetField("_systemLogCategoryPrefixes", BindingFlags.Static | BindingFlags.NonPublic).Value;
+                var result = typeof(ScriptLoggingBuilderExtensions).GetField("_systemLogCategoryPrefixes", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
 
                 if (shouldResultInRestrictedSystemLogs)
                 {
