@@ -152,14 +152,18 @@ namespace Microsoft.Azure.WebJobs.Script.Tests.Configuration
             Assert.False(options.RestrictHostLogs);
         }
 
-        internal static IHostBuilder GetScriptHostBuilder(string fileName, string fileContent)
+        internal static IHostBuilder GetScriptHostBuilder(string fileName, string fileContent, IEnvironment environment = null)
         {
             if (!string.IsNullOrEmpty(fileContent))
             {
                 File.WriteAllText(fileName, fileContent);
             }
 
-            TestEnvironment environment = new TestEnvironment();
+            if (environment is null)
+            {
+                environment = new TestEnvironment();
+            }
+
             environment.SetEnvironmentVariable(EnvironmentSettingNames.FunctionsPlatformConfigFilePath, fileName);
 
             IHost webHost = new HostBuilder()
@@ -178,7 +182,7 @@ namespace Microsoft.Azure.WebJobs.Script.Tests.Configuration
                 {
                     services.AddSingleton<TestService>();
                 })
-                .ConfigureDefaultTestWebScriptHost(null, configureRootServices: (services) =>
+                .ConfigureDefaultTestWebScriptHost(null, environment: environment, configureRootServices: (services) =>
                 {
                     services.AddSingleton(webHost.Services.GetService<IOptions<FunctionsHostingConfigOptions>>());
                     services.AddSingleton(webHost.Services.GetService<IOptionsMonitor<FunctionsHostingConfigOptions>>());
