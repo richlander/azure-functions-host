@@ -19,6 +19,11 @@ namespace Microsoft.Azure.WebJobs.Script.Workers
         public string DefaultExecutablePath { get; set; }
 
         /// <summary>
+        /// Gets or sets the working direfory for executing worker.
+        /// </summary>
+        public string ExecutableWorkingDirectory { get; set; }
+
+        /// <summary>
         /// Gets or sets the default path to the worker.
         /// </summary>
         public string DefaultWorkerPath { get; set; }

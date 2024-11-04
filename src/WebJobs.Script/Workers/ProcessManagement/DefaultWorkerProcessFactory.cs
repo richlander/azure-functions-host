@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -40,7 +41,8 @@ namespace Microsoft.Azure.WebJobs.Script.Workers
             {
                 throw new ArgumentNullException(nameof(context.Arguments.ExecutablePath));
             }
-            var startInfo = new ProcessStartInfo(context.Arguments.ExecutablePath)
+
+            ProcessStartInfo startInfo = new ProcessStartInfo(context.Arguments.ExecutablePath)
             {
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
