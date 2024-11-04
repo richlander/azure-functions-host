@@ -271,17 +271,17 @@ namespace Microsoft.Azure.WebJobs.Script
         /// <returns><see cref="true"/> if running in Kubernetes environment; otherwise, false.</returns>
         public static bool IsAnyKubernetesEnvironment(this IEnvironment environment)
         {
-            return environment.IsKubernetesManagedHosting() || environment.IsManagedAppEnvironment();
+            return environment.IsKubernetesManagedHosting() || environment.IsContainerAppEnvironment();
         }
 
         /// <summary>
         /// Gets a value indicating whether the application is running in Managed App environment.
         /// </summary>
         /// <param name="environment">The environment to verify.</param>
-        /// <returns><see cref="true"/> if running in Managed App environment; otherwise, false.</returns>
-        public static bool IsManagedAppEnvironment(this IEnvironment environment)
+        /// <returns><see cref="true"/> if running in Container App environment; otherwise, false.</returns>
+        public static bool IsContainerAppEnvironment(this IEnvironment environment)
         {
-            return !string.IsNullOrEmpty(environment.GetEnvironmentVariable(ManagedEnvironment));
+            return !string.IsNullOrEmpty(environment.GetEnvironmentVariable(ManagedEnvironment)) || !string.IsNullOrEmpty(environment.GetEnvironmentVariable(ConnectedEnvironment));
         }
 
         /// <summary>
@@ -292,7 +292,7 @@ namespace Microsoft.Azure.WebJobs.Script
         /// <returns><see cref="true"/> if running in a Linux Consumption App Service app; otherwise, false.</returns>
         public static bool IsAnyLinuxConsumption(this IEnvironment environment)
         {
-            return (environment.IsLinuxConsumptionOnAtlas() || environment.IsLinuxConsumptionOnLegion()) && !environment.IsManagedAppEnvironment();
+            return (environment.IsLinuxConsumptionOnAtlas() || environment.IsLinuxConsumptionOnLegion()) && !environment.IsContainerAppEnvironment();
         }
 
         public static bool IsLinuxConsumptionOnAtlas(this IEnvironment environment)
@@ -352,7 +352,7 @@ namespace Microsoft.Azure.WebJobs.Script
         {
             return !string.IsNullOrEmpty(environment.GetEnvironmentVariable(KubernetesServiceHost))
             && !string.IsNullOrEmpty(environment.GetEnvironmentVariable(PodNamespace))
-            && !environment.IsManagedAppEnvironment();
+            && !environment.IsContainerAppEnvironment();
         }
 
         /// <summary>

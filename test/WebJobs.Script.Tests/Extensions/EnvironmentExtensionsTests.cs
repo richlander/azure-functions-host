@@ -177,14 +177,15 @@ namespace Microsoft.Azure.WebJobs.Script.Tests.Extensions
         }
 
         [Theory]
-        [InlineData(true, false, false, true, false)]
-        [InlineData(false, true, false, true, false)]
-        [InlineData(false, true, false, true, true)]
-        [InlineData(true, true, false, true, false)]
-        [InlineData(true, true, false, true, true)]
-        [InlineData(false, false, false, false, false)]
-        [InlineData(false, false, true, false, false)]
-        public void IsAnyLinuxConsumption_ReturnsExpectedResult(bool isLinuxConsumptionOnAtlas, bool isLinuxConsumptionOnLegion, bool isManagedAppEnvironment, bool expectedValue, bool setPodName)
+        [InlineData(true, false, false, false, true, false)]
+        [InlineData(false, true, false, false, true, false)]
+        [InlineData(false, true, false, false, true, true)]
+        [InlineData(true, true, false, false, true, false)]
+        [InlineData(true, true, false, false, true, true)]
+        [InlineData(false, false, false, false, false, false)]
+        [InlineData(false, false, true, false, false, false)]
+        [InlineData(false, false, false, true, false, false)]
+        public void IsAnyLinuxConsumption_ReturnsExpectedResult(bool isLinuxConsumptionOnAtlas, bool isLinuxConsumptionOnLegion, bool isManagedAppEnvironment, bool isConnectedAppEnvironment, bool expectedValue, bool setPodName)
         {
             IEnvironment env = new TestEnvironment();
             if (isLinuxConsumptionOnAtlas)
@@ -210,14 +211,20 @@ namespace Microsoft.Azure.WebJobs.Script.Tests.Extensions
                 env.SetEnvironmentVariable(ManagedEnvironment, "true");
             }
 
+            if (isConnectedAppEnvironment)
+            {
+                env.SetEnvironmentVariable(ConnectedEnvironment, "true");
+            }
+
             Assert.Equal(expectedValue, env.IsAnyLinuxConsumption());
         }
 
         [Theory]
-        [InlineData(true, false, true)]
-        [InlineData(false, true, true)]
-        [InlineData(false, false, false)]
-        public void IsAnyKubernetesEnvironment_ReturnsExpectedResult(bool isKubernetesManagedHosting, bool isManagedAppEnvironment, bool expectedValue)
+        [InlineData(true, false, false, true)]
+        [InlineData(false, true, false, true)]
+        [InlineData(false, false, true, true)]
+        [InlineData(false, false, false, false)]
+        public void IsAnyKubernetesEnvironment_ReturnsExpectedResult(bool isKubernetesManagedHosting, bool isManagedAppEnvironment, bool isConnectedAppEnvironment, bool expectedValue)
         {
             IEnvironment env = new TestEnvironment();
             if (isKubernetesManagedHosting)
@@ -231,13 +238,20 @@ namespace Microsoft.Azure.WebJobs.Script.Tests.Extensions
                 env.SetEnvironmentVariable(ManagedEnvironment, "true");
             }
 
+            if (isConnectedAppEnvironment)
+            {
+                env.SetEnvironmentVariable(ConnectedEnvironment, "true");
+            }
+
             Assert.Equal(expectedValue, env.IsAnyKubernetesEnvironment());
         }
 
         [Theory]
-        [InlineData(true, true)]
-        [InlineData(false, false)]
-        public void IsManagedAppEnvironment_ReturnsExpectedResult(bool isManagedAppEnvironment, bool expectedValue)
+        [InlineData(true, false, true)]
+        [InlineData(false, true, true)]
+        [InlineData(true, true, true)]
+        [InlineData(false, false, false)]
+        public void IsContainerAppEnvironment_ReturnsExpectedResult(bool isManagedAppEnvironment, bool isConnectedAppEnvironment, bool expectedValue)
         {
             IEnvironment env = new TestEnvironment();
             if (isManagedAppEnvironment)
@@ -245,7 +259,12 @@ namespace Microsoft.Azure.WebJobs.Script.Tests.Extensions
                 env.SetEnvironmentVariable(EnvironmentSettingNames.ManagedEnvironment, "true");
             }
 
-            Assert.Equal(expectedValue, env.IsManagedAppEnvironment());
+            if (isConnectedAppEnvironment)
+            {
+                env.SetEnvironmentVariable(EnvironmentSettingNames.ConnectedEnvironment, "true");
+            }
+
+            Assert.Equal(expectedValue, env.IsContainerAppEnvironment());
         }
 
         [Theory]
