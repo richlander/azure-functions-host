@@ -115,6 +115,12 @@ namespace Microsoft.Azure.WebJobs.Script
                    !string.IsNullOrEmpty(environment.GetEnvironmentVariable(AzureFilesContentShare));
         }
 
+        public static bool IsDotNetInProcSupported(this IEnvironment environment)
+        {
+            return !IsFlexConsumptionSku(environment)
+                   && !string.Equals(environment.GetEnvironmentVariable(EnvironmentSettingNames.FunctionsDisableInProc), "1", StringComparison.OrdinalIgnoreCase);
+        }
+
         public static string GetAzureWebsiteHomePath(this IEnvironment environment)
         {
             return environment.GetEnvironmentVariable(AzureWebsiteHomePath);
@@ -397,6 +403,14 @@ namespace Microsoft.Azure.WebJobs.Script
         public static string GetAntaresComputerName(this IEnvironment environment)
         {
             return environment.GetEnvironmentVariableOrDefault(AntaresComputerName, string.Empty);
+        }
+
+        /// <summary>
+        /// Get hosting environment configuration file (different from scmhosting file).
+        /// </summary>
+        public static string GetFunctionsHostingEnvironmentConfigFilePath(this IEnvironment environment)
+        {
+            return environment.GetEnvironmentVariableOrDefault(FunctionsHostingEnvironmentConfigFilePath, string.Empty);
         }
 
         /// <summary>

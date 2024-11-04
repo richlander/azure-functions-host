@@ -3,6 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Azure.WebJobs.Script.Workers.Http;
 using Microsoft.Azure.WebJobs.Script.Workers.Rpc;
 
 namespace Microsoft.Azure.WebJobs.Script.Config
@@ -10,6 +13,7 @@ namespace Microsoft.Azure.WebJobs.Script.Config
     public class FunctionsHostingConfigOptions
     {
         private readonly Dictionary<string, string> _features;
+        private PathString[] _allowedInternalAuthApis;
 
         public FunctionsHostingConfigOptions()
         {
@@ -88,6 +92,24 @@ namespace Microsoft.Azure.WebJobs.Script.Config
             set
             {
                 _features[ScriptConstants.HostingConfigSwtIssuerEnabled] = value ? "1" : "0";
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a string delimited by '|' that contains a list of admin APIs that are allowed to
+        /// be invoked internally by platform components.
+        /// </summary>
+        internal string InternalAuthApisAllowList
+        {
+            get
+            {
+                return GetFeature(ScriptConstants.HostingConfigInternalAuthApisAllowList);
+            }
+
+            set
+            {
+                _allowedInternalAuthApis = null;
+                _features[ScriptConstants.HostingConfigInternalAuthApisAllowList] = value;
             }
         }
 
@@ -183,6 +205,22 @@ namespace Microsoft.Azure.WebJobs.Script.Config
             }
         }
 
+        internal bool WorkerRuntimeStrictValidationEnabled
+        {
+            get
+            {
+                return GetFeatureAsBooleanOrDefault(RpcWorkerConstants.WorkerRuntimeStrictValidationEnabled, false);
+            }
+        }
+
+        internal bool IsDotNetInProcDisabled
+        {
+            get
+            {
+                return GetFeatureAsBooleanOrDefault(ScriptConstants.HostingConfigDotNetInProcDisabled, false);
+            }
+        }
+
         /// <summary>
         /// Gets feature by name.
         /// </summary>
@@ -234,8 +272,34 @@ namespace Microsoft.Azure.WebJobs.Script.Config
             {
                 return parsedInt != 0;
             }
-
             return defaultValue;
+        }
+
+        internal bool CheckInternalAuthAllowList(HttpRequest httpRequest)
+        {
+            if (InternalAuthApisAllowList != null && _allowedInternalAuthApis == null)
+            {
+                // initialize our cached allow list on demand
+                _allowedInternalAuthApis = InternalAuthApisAllowList.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries).Select(p => new PathString(p)).ToArray();
+            }
+
+            if (_allowedInternalAuthApis != null)
+            {
+                // An allow list is configured, so we ensure that the current request
+                // matches any of the allowed APIs.
+                foreach (PathString ps in _allowedInternalAuthApis)
+                {
+                    if (httpRequest.Path.StartsWithSegments(ps, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            // no allow list configured
+            return true;
         }
     }
 }
