@@ -22,14 +22,14 @@ RUN curl -o response.json "${EXTENSION_BUNDLE_CDN_URL}/ExtensionBundles/Microsof
 RUN if [ -z "$EXTENSION_BUNDLE_VERSION" ]; then \
         EXTENSION_BUNDLE_VERSION=$(jq -r 'max_by(. | split(".") | map(tonumber))' response.json); \
         echo "Using version: $EXTENSION_BUNDLE_VERSION"; \
-        EXTENSION_BUNDLE_FILENAME_V4=Microsoft.Azure.Functions.ExtensionBundle.Workflows.${EXTENSION_BUNDLE_VERSION}_any-any.zip; \
+        EXTENSION_BUNDLE_FILENAME_V4=Microsoft.Azure.Functions.ExtensionBundle.Workflows.${EXTENSION_BUNDLE_VERSION}_any-any-hybrid.zip; \
         wget $EXTENSION_BUNDLE_CDN_URL/ExtensionBundles/Microsoft.Azure.Functions.ExtensionBundle.Workflows/$EXTENSION_BUNDLE_VERSION/$EXTENSION_BUNDLE_FILENAME_V4; \
         mkdir -p /FuncExtensionBundles/Microsoft.Azure.Functions.ExtensionBundle.Workflows/$EXTENSION_BUNDLE_VERSION; \
         unzip /$EXTENSION_BUNDLE_FILENAME_V4 -d /FuncExtensionBundles/Microsoft.Azure.Functions.ExtensionBundle.Workflows/$EXTENSION_BUNDLE_VERSION; \
         rm -f /$EXTENSION_BUNDLE_FILENAME_V4; \
     else \
         echo "Using version: $EXTENSION_BUNDLE_VERSION"; \
-        EXTENSION_BUNDLE_FILENAME_V4=Microsoft.Azure.Functions.ExtensionBundle.Workflows.${EXTENSION_BUNDLE_VERSION}_any-any.zip; \
+        EXTENSION_BUNDLE_FILENAME_V4=Microsoft.Azure.Functions.ExtensionBundle.Workflows.${EXTENSION_BUNDLE_VERSION}_any-any-hybrid.zip; \
         wget $EXTENSION_BUNDLE_CDN_URL/ExtensionBundles/Microsoft.Azure.Functions.ExtensionBundle.Workflows/$EXTENSION_BUNDLE_VERSION/$EXTENSION_BUNDLE_FILENAME_V4; \
         mkdir -p /FuncExtensionBundles/Microsoft.Azure.Functions.ExtensionBundle.Workflows/$EXTENSION_BUNDLE_VERSION; \
         unzip /$EXTENSION_BUNDLE_FILENAME_V4 -d /FuncExtensionBundles/Microsoft.Azure.Functions.ExtensionBundle.Workflows/$EXTENSION_BUNDLE_VERSION; \
@@ -77,7 +77,7 @@ ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
     FUNCTIONS_EXTENSION_VERSION=~4 \
     AzureFunctionsJobHost__Logging__Console__IsEnabled=true \
     FUNCTIONS_RUNTIME_SCALE_MONITORING_ENABLED=0 \
-    FUNCTIONS_WORKER_RUNTIME=dotnet 
+    FUNCTIONS_WORKER_RUNTIME=dotnet
 
 # Fix from https://github.com/GoogleCloudPlatform/google-cloud-dotnet-powerpack/issues/22#issuecomment-729895157
 RUN apt-get update && \
@@ -105,4 +105,8 @@ COPY --from=runtime-image [ "/FuncExtensionBundles", "/FuncExtensionBundles" ]
 COPY --from=aspnet6 [ "/usr/share/dotnet", "/usr/share/dotnet" ]
 COPY --from=aspnet8 [ "/usr/share/dotnet", "/usr/share/dotnet" ]
 
-CMD [ "/azure-functions-host/Microsoft.Azure.WebJobs.Script.WebHost" ]
+COPY Scripts /Scripts
+RUN bash /Scripts/install-native-dependencies-ubuntu.sh
+RUN chmod +x /FuncExtensionBundles/Microsoft.Azure.Functions.ExtensionBundle.Workflows/*/NetFxWorker/lapalfe
+
+CMD [ "/Scripts/init.sh" ]
