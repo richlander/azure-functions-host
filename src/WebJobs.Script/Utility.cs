@@ -141,8 +141,13 @@ namespace Microsoft.Azure.WebJobs.Script
             }, maxRetries, retryInterval);
         }
 
-        internal static async Task InvokeWithRetriesAsync(Func<Task> action, int maxRetries, TimeSpan retryInterval)
+        internal static async Task InvokeWithRetriesWhenAsync(Func<Task> action, int maxRetries, TimeSpan retryInterval, Func<Exception, bool> predicate)
         {
+            if (predicate is null)
+            {
+                throw new ArgumentNullException(nameof(predicate));
+            }
+
             int attempt = 0;
             while (true)
             {
@@ -151,7 +156,7 @@ namespace Microsoft.Azure.WebJobs.Script
                     await action();
                     return;
                 }
-                catch (Exception ex) when (!ex.IsFatal())
+                catch (Exception ex) when (predicate(ex))
                 {
                     if (++attempt > maxRetries)
                     {
@@ -161,6 +166,9 @@ namespace Microsoft.Azure.WebJobs.Script
                 }
             }
         }
+
+        internal static Task InvokeWithRetriesAsync(Func<Task> action, int maxRetries, TimeSpan retryInterval)
+            => InvokeWithRetriesWhenAsync(action, maxRetries, retryInterval, (e) => !e.IsFatal());
 
         /// <summary>
         /// Delays while the specified condition remains true.
@@ -621,7 +629,7 @@ namespace Microsoft.Azure.WebJobs.Script
             return true;
         }
 
-        internal static void VerifyFunctionsMatchSpecifiedLanguage(IEnumerable<FunctionMetadata> functions, string workerRuntime, bool isPlaceholderMode, bool isHttpWorker, CancellationToken cancellationToken)
+        internal static void VerifyFunctionsMatchSpecifiedLanguage(IEnumerable<FunctionMetadata> functions, string workerRuntime, bool isPlaceholderMode, bool isHttpWorker, CancellationToken cancellationToken, bool throwOnMismatch = true)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -638,7 +646,10 @@ namespace Microsoft.Azure.WebJobs.Script
                 }
                 else
                 {
-                    throw new HostInitializationException($"Did not find functions with language [{workerRuntime}].");
+                    if (throwOnMismatch)
+                    {
+                        throw new HostInitializationException($"Did not find functions with language [{workerRuntime}].");
+                    }
                 }
             }
         }
@@ -740,10 +751,20 @@ namespace Microsoft.Azure.WebJobs.Script
             {
                 return functions.Any(f => dotNetLanguages.Any(l => l.Equals(f.Language, StringComparison.OrdinalIgnoreCase)));
             }
+
+            return ContainsAnyFunctionMatchingWorkerRuntime(functions, workerRuntime);
+        }
+
+        /// <summary>
+        /// Inspect the functions metadata to determine if at least one function is of the specified worker runtime.
+        /// </summary>
+        internal static bool ContainsAnyFunctionMatchingWorkerRuntime(IEnumerable<FunctionMetadata> functions, string workerRuntime)
+        {
             if (functions != null && functions.Any())
             {
                 return functions.Any(f => !string.IsNullOrEmpty(f.Language) && f.Language.Equals(workerRuntime, StringComparison.OrdinalIgnoreCase));
             }
+
             return false;
         }
 

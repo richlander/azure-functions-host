@@ -7,6 +7,16 @@ jobs:
     value: |
       **\ExtensionsMetadataGeneratorTests.csproj
       **\WebJobs.Script.Tests.csproj
+      
+  templateContext:
+    outputParentDirectory: $(Build.ArtifactStagingDirectory)
+    outputs:
+    # We publish this deps.json as differences in exact dotnet SDK version between dev and CI may make it impossible to generate locally.
+    - output: pipelineArtifact
+      displayName: Publish deps.json
+      path: $(Build.ArtifactStagingDirectory)
+      artifact: WebHost_Deps
+      condition: always()
 
   steps:
   - template: /eng/ci/templates/install-dotnet.yml@self
@@ -33,3 +43,11 @@ jobs:
       testRunTitle: Unit Tests
       arguments: -v m -c release --no-build
       projects: $(test_projects)
+
+  - task: CopyFiles@2
+    displayName: Copy deps.json
+    condition: always()
+    inputs:
+      SourceFolder: out/bin/WebJobs.Script.WebHost/debug
+      Contents: '**/Microsoft.Azure.WebJobs.Script.WebHost.deps.json'
+      TargetFolder: $(Build.ArtifactStagingDirectory)

@@ -737,7 +737,7 @@ namespace Microsoft.Azure.WebJobs.Script
                         scriptFile);
 
                     // Adding a function error will cause this function to get ignored
-                    Utility.AddFunctionError(this.FunctionErrors, metadata.Name, msg);
+                    Utility.AddFunctionError(FunctionErrors, metadata.Name, msg);
 
                     _logger.ConfigurationError(msg);
                 }
@@ -773,24 +773,84 @@ namespace Microsoft.Azure.WebJobs.Script
             }
         }
 
+        // Ensure customer deployed application payload matches with the worker runtime configured for the function app and log a warning if not.
+        // If a customer has "dotnet-isolated" worker runtime configured for the function app, and then they deploy an in-proc app payload, this will warn/error
+        // If there is a mismatch, the method will return false, else true.
+        private bool ValidateAndLogRuntimeMismatch(IEnumerable<FunctionMetadata> functionMetadata, string workerRuntime, IOptions<FunctionsHostingConfigOptions> hostingConfigOptions, ILogger logger)
+        {
+            if (_environment.IsPlaceholderModeEnabled())
+            {
+                throw new InvalidOperationException($"Validation of '{EnvironmentSettingNames.FunctionWorkerRuntime}' with deployed payload metadata should not occur in placeholder mode.");
+            }
+
+            if (functionMetadata != null && functionMetadata.Any() && !Utility.ContainsAnyFunctionMatchingWorkerRuntime(functionMetadata, workerRuntime))
+            {
+                var languages = string.Join(", ", functionMetadata.Select(f => f.Language).Distinct()).Replace(DotNetScriptTypes.DotNetAssembly, RpcWorkerConstants.DotNetLanguageWorkerName);
+                var baseMessage = $"The '{EnvironmentSettingNames.FunctionWorkerRuntime}' is set to '{workerRuntime}', which does not match the worker runtime metadata found in the deployed function app artifacts. The deployed artifacts are for '{languages}'. See {DiagnosticEventConstants.WorkerRuntimeDoesNotMatchWithFunctionMetadataHelpLink} for more information.";
+
+                if (hostingConfigOptions.Value.WorkerRuntimeStrictValidationEnabled)
+                {
+                    logger.LogDiagnosticEventError(DiagnosticEventConstants.WorkerRuntimeDoesNotMatchWithFunctionMetadataErrorCode, baseMessage, DiagnosticEventConstants.WorkerRuntimeDoesNotMatchWithFunctionMetadataHelpLink, null);
+                    throw new HostInitializationException(baseMessage);
+                }
+
+                var warningMessage = baseMessage + " The application will continue to run, but may throw an exception in the future.";
+                logger.LogDiagnosticEventWarning(DiagnosticEventConstants.WorkerRuntimeDoesNotMatchWithFunctionMetadataErrorCode, warningMessage, DiagnosticEventConstants.WorkerRuntimeDoesNotMatchWithFunctionMetadataHelpLink, null);
+                return false;
+            }
+
+            return true;
+        }
+
         internal async Task<Collection<FunctionDescriptor>> GetFunctionDescriptorsAsync(IEnumerable<FunctionMetadata> functions, IEnumerable<FunctionDescriptorProvider> descriptorProviders, string workerRuntime, CancellationToken cancellationToken)
         {
             Collection<FunctionDescriptor> functionDescriptors = new Collection<FunctionDescriptor>();
             if (!cancellationToken.IsCancellationRequested)
             {
+                bool throwOnWorkerRuntimeAndPayloadMetadataMismatch = true;
+                // this dotnet isolated specific logic is temporary to ensure in-proc payload compatibility with "dotnet-isolated" as the FUNCTIONS_WORKER_RUNTIME value.
+                if (string.Equals(workerRuntime, RpcWorkerConstants.DotNetIsolatedLanguageWorkerName, StringComparison.OrdinalIgnoreCase) && !_environment.IsPlaceholderModeEnabled())
+                {
+                    bool payloadMatchesWorkerRuntime = ValidateAndLogRuntimeMismatch(functions, workerRuntime, _hostingConfigOptions, _logger);
+                    if (!payloadMatchesWorkerRuntime)
+                    {
+                        UpdateFunctionMetadataLanguageForDotnetAssembly(functions, workerRuntime);
+                        throwOnWorkerRuntimeAndPayloadMetadataMismatch = false; // we do not want to throw an exception in this case
+                    }
+                }
+
                 var httpFunctions = new Dictionary<string, HttpTriggerAttribute>();
 
-                Utility.VerifyFunctionsMatchSpecifiedLanguage(functions, workerRuntime, _environment.IsPlaceholderModeEnabled(), _isHttpWorker, cancellationToken);
+                Utility.VerifyFunctionsMatchSpecifiedLanguage(functions, workerRuntime, _environment.IsPlaceholderModeEnabled(), _isHttpWorker, cancellationToken, throwOnMismatch: throwOnWorkerRuntimeAndPayloadMetadataMismatch);
+
+                var inProcIndexingSupported = _environment.IsPlaceholderModeEnabled()
+                                              || (_environment.IsDotNetInProcSupported()
+                                                  && !_hostingConfigOptions.Value.IsDotNetInProcDisabled);
 
                 foreach (FunctionMetadata metadata in functions)
                 {
                     try
                     {
-                        bool created = false;
+                        // If this is metadata represents a function that requires direct type indexing (in-proc), and that is not supported,
+                        // throw an exception with detailed information.
+                        // This is temporary and will be removed in a future release, along with all other logic to support the in-proc model.
+                        if (metadata.IsDotNetInProc())
+                        {
+                            if (!inProcIndexingSupported)
+                            {
+                                throw new HostInitializationException(".NET In-process function detected. This model is not supported by the host in the current environment." +
+                                                                      " See https://aka.ms/azure-functions-retirements/in-process-model for more information.");
+                            }
+
+                            // If this is metadata represents a function that supports direct type indexing,
+                            // set that type in the function metadata
+                            TrySetDirectType(metadata);
+                        }
+
                         FunctionDescriptor descriptor = null;
                         foreach (var provider in descriptorProviders)
                         {
-                            (created, descriptor) = await provider.TryCreate(metadata);
+                            (bool created, descriptor) = await provider.TryCreate(metadata);
                             if (created)
                             {
                                 break;
@@ -802,12 +862,8 @@ namespace Microsoft.Azure.WebJobs.Script
                             ValidateFunction(descriptor, httpFunctions, _environment);
                             functionDescriptors.Add(descriptor);
                         }
-
-                        // If this is metadata represents a function that supports direct type indexing,
-                        // set that type int he function metadata
-                        TrySetDirectType(metadata);
                     }
-                    catch (Exception ex)
+                    catch (Exception ex) when (ex is not HostInitializationException)
                     {
                         // log any unhandled exceptions and continue
                         Utility.AddFunctionError(FunctionErrors, metadata.Name, Utility.FlattenException(ex, includeSource: false));
@@ -817,6 +873,17 @@ namespace Microsoft.Azure.WebJobs.Script
                 VerifyPrecompileStatus(functionDescriptors);
             }
             return functionDescriptors;
+        }
+
+        private static void UpdateFunctionMetadataLanguageForDotnetAssembly(IEnumerable<FunctionMetadata> functions, string workerRuntime)
+        {
+            foreach (var function in functions)
+            {
+                if (function.Language == DotNetScriptTypes.DotNetAssembly)
+                {
+                    function.Language = workerRuntime;
+                }
+            }
         }
 
         internal static void ValidateFunction(FunctionDescriptor function, Dictionary<string, HttpTriggerAttribute> httpFunctions, IEnvironment environment)

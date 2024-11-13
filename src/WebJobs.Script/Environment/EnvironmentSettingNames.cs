@@ -74,6 +74,7 @@ namespace Microsoft.Azure.WebJobs.Script
         public const string FunctionsRequestBodySizeLimit = "FUNCTIONS_REQUEST_BODY_SIZE_LIMIT";
         public const string FunctionsHostIdCheckLevel = "FUNCTIONS_HOSTID_CHECK_LEVEL";
         public const string FunctionsPlatformConfigFilePath = "FUNCTIONS_PLATFORM_CONFIG_FILE_PATH";
+        public const string FunctionsHostingEnvironmentConfigFilePath = "FUNCTIONS_HOSTING_ENVIRONMENT_CONFIG_FILE_PATH";
         public const string TargetBaseScalingEnabled = "TARGET_BASED_SCALING_ENABLED";
         public const string WebsiteNodeDefaultVersion = "WEBSITE_NODE_DEFAULT_VERSION";
         public const string FunctionsMetricsPublishPath = "FUNCTIONS_METRICS_PUBLISH_PATH";
@@ -82,6 +83,7 @@ namespace Microsoft.Azure.WebJobs.Script
         public const string FunctionsWebsiteTimeZone = "WEBSITE_TIME_ZONE";
         public const string FunctionsTargetGroup = "FUNCTIONS_TARGET_GROUP";
         public const string WebsiteArmResourceId = "WEBSITE_ARM_RESOURCE_ID";
+        public const string FunctionsDisableInProc = "FUNCTIONS_DISABLE_INPROC";
 
         //Function in Kubernetes
         public const string PodNamespace = "POD_NAMESPACE";

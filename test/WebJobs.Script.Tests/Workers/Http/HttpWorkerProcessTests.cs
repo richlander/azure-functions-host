@@ -30,6 +30,7 @@ namespace Microsoft.Azure.WebJobs.Script.Tests.Workers.Http
         private readonly TestLogger _testLogger = new TestLogger("test");
         private readonly HttpWorkerOptions _httpWorkerOptions;
         private readonly Mock<IServiceProvider> _serviceProviderMock;
+        private readonly TestOptionsMonitor<ScriptApplicationHostOptions> _scriptApplicationHostOptions = new();
 
         public HttpWorkerProcessTests()
         {
@@ -58,7 +59,7 @@ namespace Microsoft.Azure.WebJobs.Script.Tests.Workers.Http
                 {
                     Assert.Equal(Environment.GetEnvironmentVariable(HttpWorkerConstants.PortEnvVarName), processEnvValue);
                 }
-                HttpWorkerProcess httpWorkerProcess = new HttpWorkerProcess(_testWorkerId, _rootScriptPath, _httpWorkerOptions, _mockEventManager.Object, _defaultWorkerProcessFactory, _processRegistry, _testLogger, _languageWorkerConsoleLogSource.Object, new TestEnvironment(), new TestMetricsLogger(), _serviceProviderMock.Object, new LoggerFactory());
+                HttpWorkerProcess httpWorkerProcess = new HttpWorkerProcess(_testWorkerId, _rootScriptPath, _httpWorkerOptions, _mockEventManager.Object, _defaultWorkerProcessFactory, _processRegistry, _testLogger, _languageWorkerConsoleLogSource.Object, new TestEnvironment(), new TestMetricsLogger(), _serviceProviderMock.Object, _scriptApplicationHostOptions, new LoggerFactory());
                 Process childProcess = httpWorkerProcess.CreateWorkerProcess();
                 Assert.NotNull(childProcess.StartInfo.EnvironmentVariables);
                 Assert.Equal(childProcess.StartInfo.EnvironmentVariables[HttpWorkerConstants.PortEnvVarName], _workerPort.ToString());
@@ -77,7 +78,7 @@ namespace Microsoft.Azure.WebJobs.Script.Tests.Workers.Http
                 File.Create(_executablePath).Dispose();
                 TestEnvironment testEnvironment = new TestEnvironment();
                 testEnvironment.SetEnvironmentVariable(EnvironmentSettingNames.ContainerName, "TestContainer");
-                var mockHttpWorkerProcess = new HttpWorkerProcess(_testWorkerId, _rootScriptPath, _httpWorkerOptions, _mockEventManager.Object, _defaultWorkerProcessFactory, _processRegistry, _testLogger, _languageWorkerConsoleLogSource.Object, testEnvironment, new TestMetricsLogger(), _serviceProviderMock.Object, new LoggerFactory());
+                var mockHttpWorkerProcess = new HttpWorkerProcess(_testWorkerId, _rootScriptPath, _httpWorkerOptions, _mockEventManager.Object, _defaultWorkerProcessFactory, _processRegistry, _testLogger, _languageWorkerConsoleLogSource.Object, testEnvironment, new TestMetricsLogger(), _serviceProviderMock.Object, _scriptApplicationHostOptions, new LoggerFactory());
 
                 try
                 {
@@ -104,7 +105,7 @@ namespace Microsoft.Azure.WebJobs.Script.Tests.Workers.Http
             File.Delete(_executablePath);
             TestEnvironment testEnvironment = new TestEnvironment();
             testEnvironment.SetEnvironmentVariable(EnvironmentSettingNames.ContainerName, "TestContainer");
-            var mockHttpWorkerProcess = new HttpWorkerProcess(_testWorkerId, _rootScriptPath, _httpWorkerOptions, _mockEventManager.Object, _defaultWorkerProcessFactory, _processRegistry, _testLogger, _languageWorkerConsoleLogSource.Object, testEnvironment, new TestMetricsLogger(), _serviceProviderMock.Object, new LoggerFactory());
+            var mockHttpWorkerProcess = new HttpWorkerProcess(_testWorkerId, _rootScriptPath, _httpWorkerOptions, _mockEventManager.Object, _defaultWorkerProcessFactory, _processRegistry, _testLogger, _languageWorkerConsoleLogSource.Object, testEnvironment, new TestMetricsLogger(), _serviceProviderMock.Object, _scriptApplicationHostOptions, new LoggerFactory());
 
             try
             {
@@ -118,6 +119,48 @@ namespace Microsoft.Azure.WebJobs.Script.Tests.Workers.Http
             // Verify method invocation
             var testLogs = _testLogger.GetLogMessages();
             Assert.Contains("File path does not exist, not assigning permissions", testLogs[0].FormattedMessage);
+        }
+
+        [Theory]
+        [InlineData("AccountKey=abcde==", true)]
+        [InlineData("teststring", false)]
+        public async Task StartProcess_VerifySanitizedCredentialLogging(string input, bool isSecret)
+        {
+            try
+            {
+                _httpWorkerOptions.Arguments.WorkerArguments.Add(input);
+
+                File.Create(_executablePath).Dispose();
+                TestEnvironment testEnvironment = new TestEnvironment();
+                testEnvironment.SetEnvironmentVariable(EnvironmentSettingNames.ContainerName, "TestContainer");
+                var mockHttpWorkerProcess = new HttpWorkerProcess(_testWorkerId, _rootScriptPath, _httpWorkerOptions, _mockEventManager.Object, _defaultWorkerProcessFactory, _processRegistry, _testLogger, _languageWorkerConsoleLogSource.Object, testEnvironment, new TestMetricsLogger(), _serviceProviderMock.Object, _scriptApplicationHostOptions, new LoggerFactory());
+
+                try
+                {
+                    await mockHttpWorkerProcess.StartProcessAsync();
+                }
+                catch
+                {
+                    // expected to throw. Just verifying a log statement occurred before then.
+                }
+
+                // Verify
+                var testLogs = _testLogger.GetLogMessages();
+
+                if (isSecret)
+                {
+                    Assert.DoesNotContain(input, testLogs[1].FormattedMessage);
+                    Assert.Contains($"Arguments: [Hidden Credential]", testLogs[1].FormattedMessage);
+                }
+                else
+                {
+                    Assert.Contains($"Arguments: {input}", testLogs[1].FormattedMessage);
+                }
+            }
+            finally
+            {
+                File.Delete(_executablePath);
+            }
         }
     }
 }
