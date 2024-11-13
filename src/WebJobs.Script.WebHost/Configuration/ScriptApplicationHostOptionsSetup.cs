@@ -60,6 +60,7 @@ namespace Microsoft.Azure.WebJobs.Script.WebHost.Configuration
 
                 options.LogPath = Path.Combine(tempRoot, @"functions\standby\logs");
                 options.ScriptPath = Path.Combine(tempRoot, @"functions\standby\wwwroot");
+                Console.WriteLine("Set ScriptPath in ScroptApplicationHostOptionsSetup");
                 options.SecretsPath = Path.Combine(tempRoot, @"functions\standby\secrets");
                 options.IsSelfHost = options.IsSelfHost;
                 options.IsStandbyConfiguration = true;

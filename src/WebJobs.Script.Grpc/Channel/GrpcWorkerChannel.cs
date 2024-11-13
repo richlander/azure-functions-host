@@ -740,6 +740,9 @@ namespace Microsoft.Azure.WebJobs.Script.Grpc
             }
 
             string scriptRoot = _applicationHostOptions.CurrentValue.ScriptPath;
+            _workerChannelLogger.LogDebug($"SCRIPTROOT 1:{scriptRoot}");
+            Console.WriteLine($"SCRIPTROOT 2:{scriptRoot}");
+
             request.EnvironmentVariables.TryAdd(WorkerConstants.FunctionsWorkerDirectorySettingName, _workerConfig.Description.WorkerDirectory);
             request.EnvironmentVariables.TryAdd(WorkerConstants.FunctionsApplicationDirectorySettingName, scriptRoot);
             request.FunctionAppDirectory = scriptRoot;
