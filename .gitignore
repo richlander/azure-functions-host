@@ -498,3 +498,4 @@ local.settings.json
 /tools/ExtensionsMetadataGenerator/src/ExtensionsMetadataGenerator/runtimeassemblies.txt
 /tools/ExtensionsMetadataGenerator/test/ExtensionsMetadataGeneratorTests/runtimeAssemblies.txt
 BenchmarkDotNet.Artifacts/
+/src/WebJobs.Script.WebHost/Properties/launchSettings.json
