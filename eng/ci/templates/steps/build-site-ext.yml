@@ -4,14 +4,13 @@ parameters:
     default: src/WebJobs.Script.SiteExtension/WebJobs.Script.SiteExtension.csproj
 
 steps:
-  # Restore must be a separate step so we can pass in 'PublishReadyToRun=true'
   - task: DotNetCoreCLI@2
     displayName: Restore site extension
     inputs:
       command: custom
       custom: restore
       projects: ${{ parameters.project }}
-      arguments: '-v m -p:PublishReadyToRun=true -bl:$(log_dir)/site_ext.restore.binlog'
+      arguments: '-v m -bl:$(log_dir)/site_ext.restore.binlog'
 
   - task: DotNetCoreCLI@2
     displayName: Build site extension

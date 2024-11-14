@@ -11,7 +11,7 @@ Like any MSBuild project, this can be restored, build, and published separately 
 dotnet publish -c {config}
 
 # Separately
-dotnet restore -p:PublishReadyToRun=true # needs to be set to true (fixed in .net9 SDK)
+dotnet restore
 dotnet build -c {config} --no-restore
 dotnet publish -c {config} --no-build
 ```
