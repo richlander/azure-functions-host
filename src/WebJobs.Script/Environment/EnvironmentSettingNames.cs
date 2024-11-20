@@ -114,6 +114,7 @@ namespace Microsoft.Azure.WebJobs.Script
 
         // handling server side builds
         public const string ScmRunFromPackage = "SCM_RUN_FROM_PACKAGE";
+        public const string ScmValidationMode = "SCM_VALIDATION_MODE";
         public const string LocalSitePackages = "LocalSitePackagesPath";
         public const string DefaultLocalSitePackagesPath = "/local/sitepackages";
 
