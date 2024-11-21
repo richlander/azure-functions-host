@@ -17,11 +17,4 @@
     <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" />
   </ItemGroup>
 
-  <!-- workaround for https://github.com/Microsoft/msbuild/issues/2399 -->
-  <Target Name="WorkaroundMSBuildIssue2399" BeforeTargets="GetTargetFrameworkProperties">
-    <PropertyGroup>
-      <ReferringTargetFramework>$(TargetFramework)</ReferringTargetFramework>
-    </PropertyGroup>
-  </Target>
-
 </Project>

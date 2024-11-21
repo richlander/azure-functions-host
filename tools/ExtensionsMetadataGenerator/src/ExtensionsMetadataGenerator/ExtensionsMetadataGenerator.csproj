@@ -21,7 +21,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Explicitly set TFM to net6.0 as auto-resolution will fail with incompatible TFM -->
+    <!-- Explicitly set TFM to net6.0 as auto-resolution will fail with incompatible TFM. -->
+    <!-- https://github.com/Microsoft/msbuild/issues/2399 -->
     <ProjectReference
       Include="../ExtensionsMetadataGenerator.Console/ExtensionsMetadataGenerator.Console.csproj"
       ReferenceOutputAssembly="false"
