@@ -148,8 +148,10 @@ namespace Microsoft.Azure.WebJobs.Script.Workers.Rpc
         public async Task WorkerWarmupAsync()
         {
             _workerRuntime = _environment.GetEnvironmentVariable(RpcWorkerConstants.FunctionWorkerRuntimeSettingName);
+            var isInValidationMode = _environment.GetEnvironmentVariable(EnvironmentSettingNames.ScmValidationMode).Equals("1", StringComparison.InvariantCultureIgnoreCase);
 
-            if (_workerRuntime == null)
+            // do not send warmup request if in validation mode
+            if (_workerRuntime == null || isInValidationMode)
             {
                 return;
             }
