@@ -1,0 +1,34 @@
+imports:
+  - https://raw.githubusercontent.com/dotnet/crank/main/src/Microsoft.Crank.Jobs.Bombardier/bombardier.yml
+
+jobs:
+  server:
+    sources:
+      functionshost:
+        localfolder: ./
+    project: functionshost/src/WebJobs.Script.WebHost/WebJobs.Script.WebHost.csproj
+    readyStateText: 'Application started.'
+
+scenarios:
+  hello:
+    application:
+      job: server
+    load:
+      job: bombardier
+      variables:
+        serverPort: 5000
+        FUNCTIONS_WORKER_RUNTIME: dotnet-isolated
+        AzureWebJobsScriptRoot: 'E:\TestApps\Net9IsolatedHttpApp\Net9IsolatedHttpApp\out_2'
+        path: /api/Function1
+
+profiles:
+  local:
+    variables:
+      serverAddress: localhost
+    jobs: 
+      application:
+        endpoints: 
+          - http://localhost:5010
+      load:
+        endpoints: 
+          - http://localhost:5010
