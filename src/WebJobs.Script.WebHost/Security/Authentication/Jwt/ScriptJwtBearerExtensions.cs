@@ -21,6 +21,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.IdentityModel.Validators;
 using static Microsoft.Azure.WebJobs.Script.EnvironmentSettingNames;
 using static Microsoft.Azure.WebJobs.Script.ScriptConstants;
 
@@ -150,6 +151,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 ];
             }
 
+            result.EnableAadSigningKeyIssuerValidation();
             return result;
         }
 
