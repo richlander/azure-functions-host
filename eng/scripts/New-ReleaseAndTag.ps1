@@ -52,7 +52,8 @@ try {
     Write-Log "Checked out branch"
     #>
 
-    # Define paths and validate release notes
+    # Define paths and validate release notes.
+    # Currently this is hardcoded to the release_notes.md file in the root of the repository.
     Write-Log "Reading release notes..."
     $releaseNotesPath = Join-Path -Path $pwd -ChildPath "release_notes.md"
 
@@ -93,7 +94,8 @@ try {
     try {
         if ($response.StatusCode -eq 200 -or $response.StatusCode -eq 201) {
             Write-Log "Successfully created release and tag for version $shortenedVersion on branch $BranchName. Response status code: $($response.StatusCode)"
-        } else {
+        }
+        else {
             $errorMsg = "Unexpected status code: $($response.StatusCode). Failed to create release and tag for version $shortenedVersion on branch $BranchName."
             Write-Log $errorMsg -Throw
         }
