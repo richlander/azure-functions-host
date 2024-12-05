@@ -17,10 +17,15 @@ jobs:
     beforeJob:
       - publishHost
     readyStateText: Application started.
+    environmentVariables:
+      AZURE_FUNCTIONS_ENVIRONMENT: Development
+      FUNCTIONS_WORKER_RUNTIME: dotnet-isolated
+      ASPNETCORE_ENVIRONMENT: Development
+      AzureWebJobsScriptRoot: E:\\TestApps\Net9IsolatedHttpApp\Net9IsolatedHttpApp\out_2
 
 scenarios:
   hello:
-    functionshost:
+    hostruntime:
       job: server
         
     load:
@@ -36,7 +41,7 @@ profiles:
       FUNCTIONS_WORKER_RUNTIME: dotnet-isolated
       AZURE_FUNCTIONS_ENVIRONMENT: Development
     jobs: 
-      functionshost:
+      hostruntime:
         endpoints: 
           - http://localhost:5010
       load:
