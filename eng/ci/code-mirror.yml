@@ -5,6 +5,7 @@ trigger:
     - in-proc
     - release/4.*
     - release/in-proc
+    - shkr/crank-scenario-file
 
 resources:
   repositories:

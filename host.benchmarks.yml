@@ -1,30 +1,23 @@
 imports:
   - https://raw.githubusercontent.com/dotnet/crank/main/src/Microsoft.Crank.Jobs.Bombardier/bombardier.yml
 
-commands:
-  publishHost:
-   - scriptType: powershell
-     filePath: ./build-benchmark-artifacts.ps1
-
 jobs:
+
   server:
     sources:
-      publishoutput:
-        localfolder: ./out
-    executable: dotnet
-    arguments: publishoutput/azure-functions-host/Microsoft.Azure.WebJobs.Script.WebHost.dll
-    noBuild: true
-    beforeJob:
-      - publishHost
-    readyStateText: Application started.
+      functionshost:
+        repository: https://github.com/Azure/azure-functions-host
+        branchOrCommit: dev
+    project: functionshost/src/WebJobs.Script.WebHost/WebJobs.Script.WebHost.csproj
+    readyStateText: 'Application started.'
     environmentVariables:
       AZURE_FUNCTIONS_ENVIRONMENT: Development
       FUNCTIONS_WORKER_RUNTIME: dotnet-isolated
       ASPNETCORE_ENVIRONMENT: Development
-      AzureWebJobsScriptRoot: ./publishoutput/hellohttp
+      AzureWebJobsScriptRoot: D:\apps\crank\hello_http
 
 scenarios:
-  hello:
+  hellohttp:
     hostruntime:
       job: server
         
@@ -32,14 +25,12 @@ scenarios:
       job: bombardier
       variables:
         serverPort: 5000
-        path: /api/Function1
+        path: /api/HelloHttp
 
 profiles:
-  local:
+  win-devbox:
     variables:
       serverAddress: localhost
-      FUNCTIONS_WORKER_RUNTIME: dotnet-isolated
-      AZURE_FUNCTIONS_ENVIRONMENT: Development
     jobs: 
       hostruntime:
         endpoints: 
