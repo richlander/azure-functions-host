@@ -3,6 +3,9 @@ trigger:
     include:
     - shkr/crank-scenario-file
 
+# CI only, does not trigger on PRs.
+pr: none
+
 parameters:
   connection: ''
   serviceBusQueueName: ''
@@ -11,11 +14,14 @@ parameters:
 
 jobs:
 - job: PublishToServiceBus
+  pool:
+    name: 1es-pool-azfunc
+    vmImage: 1es-windows-2022
   steps:
     - task: PublishToAzureServiceBus@2
       condition: succeededOrFailed()
       timeoutInMinutes: 10
-      displayName: "Publish"
+      displayName: "Publish To AzureServiceBus"
       inputs:
         connectedServiceName: ${{ parameters.connection }}
         serviceBusQueueName: ${{ parameters.serviceBusQueueName }}
@@ -26,5 +32,5 @@ jobs:
           {
             "name": "crank",
             "retries": 1,
-            "args": [ "${{ parameters.arguments }} --variable duration=30" ]
+            "args": [ "${{ parameters.arguments }} --variable foo=30" ]
           }
