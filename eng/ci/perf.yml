@@ -1,0 +1,30 @@
+trigger:
+  branches:
+    include:
+    - shkr/crank-scenario-file
+
+parameters:
+  connection: ''
+  serviceBusQueueName: ''
+  serviceBusNamespace: ''
+  arguments: ''
+
+jobs:
+- job: PublishToServiceBus
+  steps:
+    - task: PublishToAzureServiceBus@2
+      condition: succeededOrFailed()
+      timeoutInMinutes: 10
+      displayName: "Publish"
+      inputs:
+        connectedServiceName: ${{ parameters.connection }}
+        serviceBusQueueName: ${{ parameters.serviceBusQueueName }}
+        serviceBusNamespace: ${{ parameters.serviceBusNamespace }}
+        waitForCompletion: true
+        useDataContractSerializer: "false"
+        messageBody: |
+          {
+            "name": "crank",
+            "retries": 1,
+            "args": [ "${{ parameters.arguments }} --variable duration=30" ]
+          }
