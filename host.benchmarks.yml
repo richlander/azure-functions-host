@@ -9,10 +9,10 @@ commands:
 jobs:
   server:
     sources:
-      functionshost:
-        localfolder: ./functions_host_published
+      publishoutput:
+        localfolder: ./out
     executable: dotnet
-    arguments: functionshost/Microsoft.Azure.WebJobs.Script.WebHost.dll
+    arguments: publishoutput/azure-functions-host/Microsoft.Azure.WebJobs.Script.WebHost.dll
     noBuild: true
     beforeJob:
       - publishHost
@@ -21,7 +21,7 @@ jobs:
       AZURE_FUNCTIONS_ENVIRONMENT: Development
       FUNCTIONS_WORKER_RUNTIME: dotnet-isolated
       ASPNETCORE_ENVIRONMENT: Development
-      AzureWebJobsScriptRoot: E:\\TestApps\Net9IsolatedHttpApp\Net9IsolatedHttpApp\out_2
+      AzureWebJobsScriptRoot: ./publishoutput/hellohttp
 
 scenarios:
   hello:
