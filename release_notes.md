@@ -4,3 +4,4 @@
 - My change description (#PR)
 -->
 - Add support for managed identity when using open telemetry + azure monitor (#10615)
+- Setting force refersh to false for CreateOrUpdate call (#10668)
