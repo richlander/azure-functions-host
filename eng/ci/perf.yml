@@ -6,11 +6,11 @@ trigger:
 # CI only, does not trigger on PRs.
 pr: none
 
-parameters:
-  connection: ''
+variables:
+  connection: 'AzureServiceBusConnection'  
   serviceBusQueueName: ''
   serviceBusNamespace: ''
-  arguments: ''
+  arguments: '--verbose'
 
 jobs:
 - job: PublishToServiceBus
@@ -21,16 +21,16 @@ jobs:
     - task: PublishToAzureServiceBus@2
       condition: succeededOrFailed()
       timeoutInMinutes: 10
-      displayName: "Publish To AzureServiceBus"
+      displayName: "Publish To Azure ServiceBus"
       inputs:
-        connectedServiceName: ${{ parameters.connection }}
-        serviceBusQueueName: ${{ parameters.serviceBusQueueName }}
-        serviceBusNamespace: ${{ parameters.serviceBusNamespace }}
+        connectedServiceName: ${{ variables.connection }}
+        serviceBusQueueName: ${{ variables.serviceBusQueueName }}
+        serviceBusNamespace: ${{ variables.serviceBusNamespace }}
         waitForCompletion: true
         useDataContractSerializer: "false"
         messageBody: |
           {
             "name": "crank",
             "retries": 1,
-            "args": [ "${{ parameters.arguments }} --variable foo=30" ]
+            "args": [ "${{ variables.arguments }} --variable foo=30" ]
           }
