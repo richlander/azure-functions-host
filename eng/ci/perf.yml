@@ -7,9 +7,6 @@ trigger:
 pr: none
 
 variables:
-  connection: '$(connection)'  
-  serviceBusQueueName: '$(serviceBusQueueName)'
-  serviceBusNamespace: '$(serviceBusNamespace)'
   arguments: '--verbose'
 
 jobs:
@@ -19,9 +16,9 @@ jobs:
     - task: PublishToAzureServiceBus@2
       displayName: "Publish To Azure ServiceBus"
       inputs:
-        azureSubscription: $(connection)
-        serviceBusQueueName: ${{ variables.serviceBusQueueName }}
-        serviceBusNamespace: '$(serviceBusNamespace)'
+        azureSubscription: Azure-Functions-Host-Perf-internal
+        serviceBusQueueName: dni9-hello-http
+        serviceBusNamespace: azure-functions-host-perf
         waitForCompletion: true
         useDataContractSerializer: "false"
         messageBody: |
