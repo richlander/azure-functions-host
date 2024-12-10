@@ -18,12 +18,10 @@ jobs:
     name: 1es-pool-azfunc
     vmImage: 1es-windows-2022
   steps:
-    - task: PublishToAzureServiceBus@2
-      condition: succeededOrFailed()
-      timeoutInMinutes: 10
+    - task: PublishToAzureServiceBus@1
       displayName: "Publish To Azure ServiceBus"
       inputs:
-        connectedServiceName: ${{ variables.connection }}
+        azureSubscription: ${{ variables.connection }}
         serviceBusQueueName: ${{ variables.serviceBusQueueName }}
         serviceBusNamespace: ${{ variables.serviceBusNamespace }}
         waitForCompletion: true
