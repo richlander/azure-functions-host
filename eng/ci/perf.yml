@@ -14,9 +14,7 @@ variables:
 
 jobs:
 - job: PublishToServiceBus
-  pool:
-    name: 1es-pool-azfunc
-    vmImage: 1es-windows-2022
+  pool: server
   steps:
     - task: PublishToAzureServiceBus@2
       displayName: "Publish To Azure ServiceBus"
