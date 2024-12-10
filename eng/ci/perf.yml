@@ -18,7 +18,7 @@ jobs:
     name: 1es-pool-azfunc
     vmImage: 1es-windows-2022
   steps:
-    - task: PublishToAzureServiceBus@1
+    - task: PublishToAzureServiceBus@2
       displayName: "Publish To Azure ServiceBus"
       inputs:
         azureSubscription: ${{ variables.connection }}
