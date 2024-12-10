@@ -19,9 +19,9 @@ jobs:
     - task: PublishToAzureServiceBus@2
       displayName: "Publish To Azure ServiceBus"
       inputs:
-        azureSubscription: ${{ variables.connection }}
+        azureSubscription: $(connection)
         serviceBusQueueName: ${{ variables.serviceBusQueueName }}
-        serviceBusNamespace: ${{ variables.serviceBusNamespace }}
+        serviceBusNamespace: '$(serviceBusNamespace)'
         waitForCompletion: true
         useDataContractSerializer: "false"
         messageBody: |
