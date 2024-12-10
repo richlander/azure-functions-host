@@ -7,9 +7,9 @@ trigger:
 pr: none
 
 variables:
-  connection: 'AzureServiceBusConnection'  
-  serviceBusQueueName: ''
-  serviceBusNamespace: ''
+  connection: '$(connection)'  
+  serviceBusQueueName: '$(serviceBusQueueName)'
+  serviceBusNamespace: '$(serviceBusNamespace)'
   arguments: '--verbose'
 
 jobs:
