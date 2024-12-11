@@ -163,7 +163,6 @@ namespace Microsoft.Azure.WebJobs.Script.Workers.Rpc
                         workerDescription.FormatWorkingDirectoryIfNeeded();
                         workerDescription.FormatArgumentsIfNeeded(_logger);
                         workerDescription.ThrowIfFileNotExists(workerDescription.DefaultWorkerPath, nameof(workerDescription.DefaultWorkerPath));
-
                         workerDescription.ExpandEnvironmentVariables();
 
                         WorkerProcessCountOptions workerProcessCount = GetWorkerProcessCount(workerConfig);

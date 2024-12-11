@@ -10,12 +10,12 @@ namespace Microsoft.Azure.WebJobs.Script.Workers.Rpc
     internal class RpcWorkerContext : WorkerContext
     {
         public RpcWorkerContext(string requestId,
-            int maxMessageLength,
-            string workerId,
-            WorkerProcessArguments workerProcessArguments,
-            string workingDirectory,
-            Uri serverUri,
-            IDictionary<string, string> environmentVariables = null)
+                int maxMessageLength,
+                string workerId,
+                WorkerProcessArguments workerProcessArguments,
+                string workingDirectory,
+                Uri serverUri,
+                IDictionary<string, string> environmentVariables = null)
         {
             if (serverUri == null)
             {
@@ -26,7 +26,7 @@ namespace Microsoft.Azure.WebJobs.Script.Workers.Rpc
                 throw new InvalidOperationException($"{nameof(ServerUri.Host)} is null");
             }
 
-            this.RequestId = requestId;
+            RequestId = requestId;
             MaxMessageLength = RpcWorkerConstants.DefaultMaxMessageLengthBytes;
             WorkerId = workerId;
             Arguments = workerProcessArguments;
