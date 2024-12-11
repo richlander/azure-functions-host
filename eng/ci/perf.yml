@@ -11,10 +11,11 @@ variables:
 
 jobs:
 - job: PublishToServiceBus
+  displayName: "Windows HTTP Tests"
   pool: server
   steps:
     - task: PublishToAzureServiceBus@2
-      displayName: "Publish To Azure ServiceBus"
+      displayName: ".NET9 Hello Http"
       inputs:
         azureSubscription: Azure-Functions-Host-Perf-internal
         serviceBusQueueName: dni9-hello-http
@@ -25,5 +26,5 @@ jobs:
           {
             "name": "crank",
             "retries": 1,
-            "args": [ "--config https://raw.githubusercontent.com/kshyju/temp-perf-scenarios/refs/heads/main/hellohttp.yml --scenario hellohttp --profile win2022" ]
+            "args": [ "--config https://raw.githubusercontent.com/kshyju/temp-perf-scenarios/refs/heads/main/hellohttp.yml --scenario hellohttp --profile win2022 --description net9hellohttpwin --chart --verbose" ]
           }
