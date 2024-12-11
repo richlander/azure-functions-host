@@ -20,6 +20,7 @@ namespace Microsoft.Azure.WebJobs.Script.Tests.Workers.Rpc
     {
         private readonly Mock<IWorkerProcessFactory> _workerProcessFactory;
         private RpcWorkerProcess _rpcWorkerProcess;
+        private RpcWorkerProcess _rpcWorkerProcessWithExecutablePath;
         private Mock<IScriptEventManager> _eventManager;
         private Mock<IHostProcessMonitor> _hostProcessMonitorMock;
         private TestLogger _logger = new TestLogger("test");
@@ -51,6 +52,23 @@ namespace Microsoft.Azure.WebJobs.Script.Tests.Workers.Rpc
                 "testrootPath",
                 rpcServer.Uri,
                 testWorkerConfigs.ElementAt(0),
+                _eventManager.Object,
+                _workerProcessFactory.Object,
+                processRegistry.Object,
+                _logger,
+                languageWorkerConsoleLogSource.Object,
+                new TestMetricsLogger(),
+                serviceProviderMock.Object,
+                _functionsHostingConfigOptions,
+                testEnv,
+                scriptApplicationHostOptions,
+                new LoggerFactory());
+
+            _rpcWorkerProcessWithExecutablePath = new RpcWorkerProcess("node",
+                "testworkerId",
+                "testrootPath",
+                rpcServer.Uri,
+                TestHelpers.GetTestWorkerConfigsWithExecutableWorkingDirectory().First(),
                 _eventManager.Object,
                 _workerProcessFactory.Object,
                 processRegistry.Object,
@@ -218,6 +236,14 @@ namespace Microsoft.Azure.WebJobs.Script.Tests.Workers.Rpc
             var process = _rpcWorkerProcess.CreateWorkerProcess();
 
             _workerProcessFactory.Verify(x => x.CreateWorkerProcess(It.Is<WorkerContext>(c => c.EnvironmentVariables["feature1"] == "1")));
+        }
+
+        [Fact]
+        public void CreateWorkerProcess_AddsExecutableWorkingDirectory()
+        {
+            var process = _rpcWorkerProcessWithExecutablePath.CreateWorkerProcess();
+
+            _workerProcessFactory.Verify(x => x.CreateWorkerProcess(It.Is<WorkerContext>(c => c.WorkingDirectory == "executableDirectory")));
         }
 
         [Fact]
