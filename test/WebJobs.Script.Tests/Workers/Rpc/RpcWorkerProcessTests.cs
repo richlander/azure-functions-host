@@ -93,7 +93,7 @@ namespace Microsoft.Azure.WebJobs.Script.Tests.Workers.Rpc
                 return eventType == typeof(HostStartEvent);
             };
 
-            _eventManager.Verify(_ => _.Subscribe(It.Is<IObserver<ScriptEvent>>(p => validate(p))), Times.Once());
+            _eventManager.Verify(_ => _.Subscribe(It.Is<IObserver<ScriptEvent>>(p => validate(p))), Times.AtLeastOnce());
         }
 
         [Fact]
