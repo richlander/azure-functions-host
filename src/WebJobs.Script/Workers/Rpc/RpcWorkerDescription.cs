@@ -66,12 +66,6 @@ namespace Microsoft.Azure.WebJobs.Script.Workers.Rpc
         public string WorkerIndexing { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether palrun emulation should be performed.
-        /// </summary>
-        [JsonProperty(PropertyName = "palEmulated")]
-        public bool IsPalEmulated { get; set; }
-
-        /// <summary>
         /// Gets or sets the supported file extension type. Functions are registered with workers based on extension.
         /// </summary>
         [JsonProperty(PropertyName = "extensions")]
@@ -256,6 +250,11 @@ namespace Microsoft.Azure.WebJobs.Script.Workers.Rpc
             }
 
             return match.Value;
+        }
+
+        internal void FormatWorkingDirectoryIfNeeded()
+        {
+            ExecutableWorkingDirectory = ExecutableWorkingDirectory?.Replace(RpcWorkerConstants.WorkerDirectoryPath, WorkerDirectory);
         }
     }
 }
