@@ -82,7 +82,7 @@ namespace Microsoft.Azure.WebJobs.Script.Workers.Profiles
             updatedDescription.Language = UseProfileOrDefault(ProfileDescription.Language, defaultWorkerDescription.Language);
             updatedDescription.WorkerDirectory = UseProfileOrDefault(ProfileDescription.WorkerDirectory, defaultWorkerDescription.WorkerDirectory);
             updatedDescription.IsDisabled = ProfileDescription.IsDisabled ?? defaultWorkerDescription.IsDisabled ?? false;
-            updatedDescription.IsPalEmulated = ProfileDescription.IsPalEmulated || defaultWorkerDescription.IsPalEmulated;
+            updatedDescription.ExecutableWorkingDirectory = UseProfileOrDefault(ProfileDescription.ExecutableWorkingDirectory, defaultWorkerDescription.ExecutableWorkingDirectory);
             return updatedDescription;
         }
 

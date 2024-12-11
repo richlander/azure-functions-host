@@ -42,47 +42,16 @@ namespace Microsoft.Azure.WebJobs.Script.Workers
                 throw new ArgumentNullException(nameof(context.Arguments.ExecutablePath));
             }
 
-            ProcessStartInfo startInfo = null;
-
-            // In case of logic apps, We run exe's on linux using PAL. So, Any .exe executions in linux and logic apps
-            // should be run using pal.
-            if (context is RpcWorkerContext rpcWorkerContext && rpcWorkerContext.PalEmulated)
+            ProcessStartInfo startInfo = new ProcessStartInfo(context.Arguments.ExecutablePath)
             {
-                //context.Arguments.ExecutablePath = context.Arguments.ExecutablePath.Replace(".exe", string.Empty);
-                //startInfo = new ProcessStartInfo("wsl")
-                //{
-                //    RedirectStandardOutput = true,
-                //    RedirectStandardError = true,
-                //    CreateNoWindow = true,
-                //    UseShellExecute = false,
-                //    ErrorDialog = false,
-                //    WorkingDirectory = Directory.GetParent(context.Arguments.ExecutablePath).FullName,
-                //    Arguments = "\"/mnt/c/Projects/Ext Bund/NetFxWorker/lapalfe\"" + context.GetFormattedArguments(),
-                //};
-                startInfo = new ProcessStartInfo(context.Arguments.ExecutablePath)
-                {
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true,
-                    UseShellExecute = false,
-                    ErrorDialog = false,
-                    WorkingDirectory = Directory.GetParent(context.Arguments.ExecutablePath).FullName,
-                    Arguments = GetArguments(context),
-                };
-            }
-            else
-            {
-                startInfo = new ProcessStartInfo(context.Arguments.ExecutablePath)
-                {
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true,
-                    UseShellExecute = false,
-                    ErrorDialog = false,
-                    WorkingDirectory = context.WorkingDirectory,
-                    Arguments = GetArguments(context),
-                };
-            }
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                ErrorDialog = false,
+                WorkingDirectory = context.WorkingDirectory,
+                Arguments = GetArguments(context),
+            };
 
             var processEnvVariables = context.EnvironmentVariables;
             if (processEnvVariables != null && processEnvVariables.Any())

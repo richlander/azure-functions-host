@@ -160,13 +160,10 @@ namespace Microsoft.Azure.WebJobs.Script.Workers.Rpc
                     if (ShouldAddWorkerConfig(workerDescription.Language))
                     {
                         workerDescription.FormatWorkerPathIfNeeded(_systemRuntimeInformation, _environment, _logger);
+                        workerDescription.FormatWorkingDirectoryIfNeeded();
                         workerDescription.FormatArgumentsIfNeeded(_logger);
+                        workerDescription.ThrowIfFileNotExists(workerDescription.DefaultWorkerPath, nameof(workerDescription.DefaultWorkerPath));
 
-                        // When the worker is running in PAL sandbox, we cannot fing the function information in host OS
-                        if (!workerDescription.IsPalEmulated)
-                        {
-                            workerDescription.ThrowIfFileNotExists(workerDescription.DefaultWorkerPath, nameof(workerDescription.DefaultWorkerPath));
-                        }
                         workerDescription.ExpandEnvironmentVariables();
 
                         WorkerProcessCountOptions workerProcessCount = GetWorkerProcessCount(workerConfig);
