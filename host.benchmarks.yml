@@ -28,7 +28,7 @@ scenarios:
         path: /api/HelloHttp
 
 profiles:
-  win-devbox:
+  win2022:
     variables:
       serverAddress: localhost
     jobs: 

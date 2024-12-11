@@ -25,5 +25,5 @@ jobs:
           {
             "name": "crank",
             "retries": 1,
-            "args": [ "${{ variables.arguments }} --variable foo=30" ]
+            "args": [ "--config https://raw.githubusercontent.com/kshyju/temp-perf-scenarios/refs/heads/main/hellohttp.yml --scenario hellohttp --profile win2022" ]
           }
