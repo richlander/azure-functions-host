@@ -5,3 +5,5 @@
 -->
 
 - Setting force refersh to false for CreateOrUpdate call (#10668)
+- Update the `DefaultHttpProxyService` to better handle client disconnect scenarios (#10688)
+  - Replaced `InvalidOperationException` with `HttpForwardingException` when there is a ForwarderError

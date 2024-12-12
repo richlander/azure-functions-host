@@ -5,7 +5,6 @@ using System;
 
 namespace Microsoft.Azure.WebJobs.Script.Grpc.Exceptions
 {
-    [Serializable]
     internal class HttpForwardingException : Exception
     {
         public HttpForwardingException()
