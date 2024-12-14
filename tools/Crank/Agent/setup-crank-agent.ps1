@@ -13,22 +13,6 @@ $ErrorActionPreference = 'Stop'
 
 #region Utilities
 
-function InstallDotNet {
-    Write-Verbose 'Installing dotnet...'
-    if ($IsWindows) {
-        Invoke-WebRequest 'https://raw.githubusercontent.com/dotnet/cli/master/scripts/obtain/dotnet-install.ps1' -OutFile 'dotnet-install.ps1'
-        $dotnetInstallDir = "$env:ProgramFiles\dotnet"
-        ./dotnet-install.ps1 -InstallDir $dotnetInstallDir
-        [Environment]::SetEnvironmentVariable("Path", $env:Path + ";$dotnetInstallDir\;", 'Machine')
-    } else {
-        # From https://docs.microsoft.com/dotnet/core/install/linux-ubuntu#install-the-sdk
-        sudo apt-get update
-        sudo apt-get install -y apt-transport-https
-        sudo apt-get update
-        sudo apt-get install -y dotnet-sdk-3.1
-    }
-}
-
 function BuildCrankAgent($CrankRepoPath) {
     Push-Location $CrankRepoPath
     try {
@@ -51,6 +35,9 @@ function GetDotNetToolsLocationArgs {
 }
 
 function InstallCrankAgentTool($LocalPackageSource) {
+
+    Write-Verbose 'Installing crank-agent tool...'
+
     Write-Verbose 'Stopping crank-agent...'
 
     $crankAgentProcessName = 'crank-agent'
@@ -68,7 +55,7 @@ function InstallCrankAgentTool($LocalPackageSource) {
 
     $installArgs =
         'tool', 'install', 'Microsoft.Crank.Agent',
-        '--version', '0.1.0-*'
+        '--version', '0.2.0-*'
 
     $installArgs += GetDotNetToolsLocationArgs
 
@@ -216,7 +203,6 @@ function InstallDocker {
 Write-Verbose "WindowsLocalAdmin: '$($WindowsLocalAdmin.UserName)'"
 
 if ($Docker) { InstallDocker }
-if ($InstallDotNet) { InstallDotNet }
 if ($InstallCrankAgent) { InstallCrankAgent }
 ScheduleCrankAgentStart
 

@@ -10,15 +10,12 @@ param (
     [string]
     $BaseName ='1',
 
-    [string[]]
-    $NamePostfixes = @('-app', '-load'),
-
     [Parameter(Mandatory = $true)]
     [ValidateSet('Linux', 'Windows')]
     $OsType ='Windows',
 
-    [switch]
-    $Docker,
+    [string]
+    $NamePostfix = 'perf',
 
     [string]
     $VmSize = 'Standard_E2s_v3',
@@ -35,19 +32,17 @@ param (
 
 $ErrorActionPreference = 'Stop'
 
-$NamePostfixes | ForEach-Object -Parallel {
-    & "$using:PSScriptRoot/deploy-vm.ps1" `
-        -SubscriptionName $using:SubscriptionName `
-        -BaseName $using:BaseName `
-        -NamePostfix $_ `
-        -OsType $using:OsType `
-        -Docker:$using:Docker `
-        -VmSize $using:VmSize `
-        -OsDiskType $using:OsDiskType `
-        -Location $using:Location `
-        -UserName $using:UserName `
-        -Verbose:$using:VerbosePreference
-}
+# Call deploy-vm.ps1 with "app" as the value of NamePostfix
+& "$PSScriptRoot/deploy-vm.ps1" `
+    -SubscriptionName $SubscriptionName `
+    -BaseName $BaseName `
+    -NamePostfix $NamePostfix `
+    -OsType $OsType `
+    -VmSize $VmSize `
+    -OsDiskType $OsDiskType `
+    -Location $Location `
+    -UserName $UserName `
+    -Verbose:$VerbosePreference
 
 # TODO: remove this warning when app deployment is automated
 $appPath = if ($OsType -eq 'Linux') { "/home/$UserName/FunctionApps" } else { 'C:\FunctionApps' }

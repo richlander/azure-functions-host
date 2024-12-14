@@ -31,42 +31,38 @@ param (
 
     [string]
     $UserName = 'Functions'
+
+    [Parameter(Mandatory = $true)]
+    [string]
+    Password
 )
 
 $ErrorActionPreference = 'Stop'
 
 $resourceGroupName = "FunctionsCrank-$OsType-$BaseName$NamePostfix"
-$vmName = "functions-crank-$OsType-$BaseName$NamePostfix".ToLower()
+$vmName = "func-crank-$BaseName$NamePostfix".ToLower()
 Write-Verbose "Creating VM '$vmName' in resource group '$resourceGroupName'"
 
 Set-AzContext -Subscription $SubscriptionName | Out-Null
 
 New-AzResourceGroup -Name $resourceGroupName -Location $Location | Out-Null
 
-$vaultSubscriptionId = (Get-AzSubscription -SubscriptionName 'Antares-Demo').Id
+$adminPasswordBase64 = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes(Password))
 
-$customScriptParameters = @{
-    CrankBranch = 'master'
-    Docker = $Docker.IsPresent
+$parameters = @{
+    location = $Location
+    vmName = $vmName
+    adminUsername = $UserName
+    adminPassword = Password
+    windowsLocalAdminUserName = $WindowsLocalAdminUserName
+    windowsLocalAdminPasswordBase64 = $adminPasswordBase64
 }
 
 New-AzResourceGroupDeployment `
     -ResourceGroupName $resourceGroupName `
-    -TemplateFile "$PSScriptRoot\template.json" `
-    -TemplateParameterObject @{
-        vmName = $vmName
-        dnsLabelPrefix = $vmName
-        vmSize = $VmSize
-        osDiskType = $OsDiskType
-        osType = $OsType
-        adminUsername = $UserName
-        authenticationType = 'password'
-        vaultName = 'functions-crank-kv'
-        vaultResourceGroupName = 'FunctionsCrank'
-        vaultSubscription = $vaultSubscriptionId
-        secretName = 'CrankAgentVMAdminPassword'
-        customScriptParameters = $customScriptParameters | ConvertTo-Json -Compress
-    } | Out-Null
+    -TemplateFile "$PSScriptRoot\create-resources.bicep" `
+    -TemplateParameterObject $parameters `
+    -Verbose
 
 Write-Verbose 'Restarting the VM...'
 Restart-AzVM -ResourceGroupName $resourceGroupName -Name $vmName | Out-Null
