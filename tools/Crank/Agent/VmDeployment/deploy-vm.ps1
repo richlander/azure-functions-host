@@ -30,11 +30,11 @@ param (
     $Location = 'West Central US',
 
     [string]
-    $UserName = 'Functions'
+    $UserName = 'Functions',
 
     [Parameter(Mandatory = $true)]
     [string]
-    Password
+    $Password
 )
 
 $ErrorActionPreference = 'Stop'
@@ -47,15 +47,25 @@ Set-AzContext -Subscription $SubscriptionName | Out-Null
 
 New-AzResourceGroup -Name $resourceGroupName -Location $Location | Out-Null
 
-$adminPasswordBase64 = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes(Password))
+$adminPasswordBase64 = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($Password))
+
+$customScriptParameters = @{
+    CrankBranch = 'master'
+    Docker = $Docker.IsPresent
+}
+
+# Convert custom script parameters to JSON and then to base64
+$parametersJson = $customScriptParameters | ConvertTo-Json -Compress
+$parametersJsonBase64 = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($parametersJson))
 
 $parameters = @{
     location = $Location
     vmName = $vmName
     adminUsername = $UserName
-    adminPassword = Password
-    windowsLocalAdminUserName = $WindowsLocalAdminUserName
+    adminPassword = $Password
+    windowsLocalAdminUserName = $UserName
     windowsLocalAdminPasswordBase64 = $adminPasswordBase64
+    parametersJsonBase64 = $parametersJsonBase64
 }
 
 New-AzResourceGroupDeployment `

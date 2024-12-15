@@ -20,6 +20,12 @@ param windowsLocalAdminUserName string
 @description('Base64 encoded Windows local admin password')
 param windowsLocalAdminPasswordBase64 string
 
+@description('The directory where the logs will be stored')
+param logDirectory string = 'C:\\CustomScriptExtensionLogs'
+
+@description('The name of the Azure Bastion resource')
+param bastionName string = '${vmName}-bastion'
+
 resource virtualNetwork 'Microsoft.Network/virtualNetworks@2021-02-01' = {
   name: '${vmName}-vnet'
   location: location
@@ -40,11 +46,30 @@ resource subnet 'Microsoft.Network/virtualNetworks/subnets@2021-02-01' = {
   }
 }
 
+resource bastionSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-02-01' = {
+  name: 'AzureBastionSubnet'
+  parent: virtualNetwork
+  properties: {
+    addressPrefix: '10.0.1.0/24'
+  }
+}
+
 resource publicIPAddress 'Microsoft.Network/publicIPAddresses@2021-02-01' = {
   name: '${vmName}-pip'
   location: location
   properties: {
     publicIPAllocationMethod: 'Dynamic'
+  }
+}
+
+resource bastionPublicIPAddress 'Microsoft.Network/publicIPAddresses@2021-02-01' = {
+  name: '${bastionName}-pip'
+  location: location
+  sku: {
+    name: 'Standard'
+  }
+  properties: {
+    publicIPAllocationMethod: 'Static'
   }
 }
 
@@ -103,7 +128,8 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-07-01' = {
 }
 
 resource customScriptExtension 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = {
-  name: '${vmName}/CustomScriptExtension'
+  name: 'CustomScriptExtension'
+  parent: virtualMachine
   location: location
   properties: {
     publisher: 'Microsoft.Compute'
@@ -114,7 +140,27 @@ resource customScriptExtension 'Microsoft.Compute/virtualMachines/extensions@202
       fileUris: [
         'https://gist.githubusercontent.com/kshyju/e2a43a42c9b6b11c388a5077518ef4ec/raw/742ebbdc870aa2fe2b21c9df36191ed5fbc3ce33/win-bootstrap.ps1'
       ]
-      commandToExecute: 'powershell -ExecutionPolicy Unrestricted -File win-bootstrap.ps1 -ParametersJsonBase64 ${parametersJsonBase64} -WindowsLocalAdminUserName ${windowsLocalAdminUserName} -WindowsLocalAdminPasswordBase64 ${windowsLocalAdminPasswordBase64}'
+      commandToExecute: 'powershell -ExecutionPolicy Unrestricted -File win-bootstrap.ps1 -ParametersJsonBase64 ${parametersJsonBase64} -WindowsLocalAdminUserName ${windowsLocalAdminUserName} -WindowsLocalAdminPasswordBase64 ${windowsLocalAdminPasswordBase64} > ${logDirectory}\\script-output.log 2>&1'
     }
+  }
+}
+
+resource bastionHost 'Microsoft.Network/bastionHosts@2021-05-01' = {
+  name: bastionName
+  location: location
+  properties: {
+    ipConfigurations: [
+      {
+        name: 'bastionHostIpConfiguration'
+        properties: {
+          subnet: {
+            id: bastionSubnet.id
+          }
+          publicIPAddress: {
+            id: bastionPublicIPAddress.id
+          }
+        }
+      }
+    ]
   }
 }

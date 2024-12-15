@@ -27,7 +27,11 @@ param (
     $Location = 'West Central US',
 
     [string]
-    $UserName = 'Functions'
+    $UserName = 'Functions',
+
+    [Parameter(Mandatory = $true)]
+    [string]
+    $Password
 )
 
 $ErrorActionPreference = 'Stop'
@@ -42,6 +46,7 @@ $ErrorActionPreference = 'Stop'
     -OsDiskType $OsDiskType `
     -Location $Location `
     -UserName $UserName `
+    -Password $Password `
     -Verbose:$VerbosePreference
 
 # TODO: remove this warning when app deployment is automated

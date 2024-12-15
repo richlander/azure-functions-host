@@ -32,10 +32,10 @@ param(
     $Trace = $false,
 
     [int]
-    $Duration = 15,
+    $Duration = 1,
 
     [int]
-    $Warmup = 15,
+    $Warmup = 1,
 
     [int]
     $Iterations = 1
