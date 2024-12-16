@@ -5,6 +5,5 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-Write-Output "$WindowsLocalAdminUserName: $WindowsLocalAdminPasswordBase64"
-Write-Output "ParametersJsonBase64: $ParametersJsonBase64"
-
+Write-Output "Hello from bootstrap."
+Write-Output "WindowsLocalAdminUserName: $WindowsLocalAdminUserName"
