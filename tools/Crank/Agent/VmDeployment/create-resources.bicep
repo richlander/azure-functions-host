@@ -201,7 +201,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-07-01' = {
 }
 
 resource customScriptExtension 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = {
-  name: 'CustomScriptExtension'
+  name: '${vmName}-customscriptextn'
   parent: virtualMachine
   location: location
   properties: {
