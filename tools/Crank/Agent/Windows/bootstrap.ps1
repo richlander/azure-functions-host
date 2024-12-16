@@ -44,15 +44,4 @@ Write-Host "Cloned host repo"
 
 # Setup Crank agent
 $plaintextPassword = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($WindowsLocalAdminPasswordBase64))
-
-psexec -accepteula -h -u $WindowsLocalAdminUserName -p $plaintextPassword `
-    pwsh.exe -NoProfile -NonInteractive `
-    -File "C:\github\azure-functions-host\tools\Crank\Agent\setup-crank-agent-raw.ps1" `
-    -ParametersJsonBase64 $ParametersJsonBase64 `
-    -WindowsLocalAdminUserName $WindowsLocalAdminUserName `
-    -WindowsLocalAdminPasswordBase64 $WindowsLocalAdminPasswordBase64 `
-    -Verbose
-
-if (-not $?) {
-    throw "psexec exit code: $LASTEXITCODE"
-}
+Write-Host "pt pass" $plaintextPassword

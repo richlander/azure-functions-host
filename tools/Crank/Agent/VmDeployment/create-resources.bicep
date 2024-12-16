@@ -21,7 +21,7 @@ param windowsLocalAdminUserName string
 param windowsLocalAdminPasswordBase64 string
 
 @description('The directory where the logs will be stored')
-param logDirectory string = 'C:\\CustomScriptExtensionLogs'
+param logDirectory string = 'C:\\CrankDeploymentLogs'
 
 @description('The name of the Azure Bastion resource')
 param bastionName string = '${vmName}-bastion'
