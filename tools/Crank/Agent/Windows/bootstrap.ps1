@@ -27,16 +27,14 @@ $chocoCmd = "$env:ProgramData\chocolatey\bin\choco.exe"
 & $chocoCmd install -y git
 $env:PATH += ";$env:ProgramFiles\Git\cmd"
 
-Write-Output "Installed GIT1."
+Write-Output "INSTALLED GIT."
 
 & $chocoCmd install -y powershell-core
 $env:PATH += ";$env:ProgramFiles\PowerShell\7"
 
 & $chocoCmd install -y sysinternals
 
-Write-Host "Installed sysinternals."
-
-& $chocoCmd install -y dotnet-sdk --version="8.0.100"
+Write-Host "INSTALLED sysinternals."
 
 # Clone azure-functions-host repo
 Clone-Repository -repoUrl "https://github.com/Azure/azure-functions-host.git" -branch "shkr/crank" -clonePath "C:\github\azure-functions-host"
@@ -49,7 +47,7 @@ $plaintextPassword = [System.Text.Encoding]::UTF8.GetString([System.Convert]::Fr
 
 psexec -accepteula -h -u $WindowsLocalAdminUserName -p $plaintextPassword `
     pwsh.exe -NoProfile -NonInteractive `
-    -File "$githubPath\azure-functions-host\tools\Crank\Agent\setup-crank-agent-raw.ps1" `
+    -File "C:\github\azure-functions-host\tools\Crank\Agent\setup-crank-agent-raw.ps1" `
     -ParametersJsonBase64 $ParametersJsonBase64 `
     -WindowsLocalAdminUserName $WindowsLocalAdminUserName `
     -WindowsLocalAdminPasswordBase64 $WindowsLocalAdminPasswordBase64 `

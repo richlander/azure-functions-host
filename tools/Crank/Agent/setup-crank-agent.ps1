@@ -107,12 +107,7 @@ function InstallCrankAgent {
             Pop-Location
         }
     } else {
-        if ($CrankBranch) {
-            $packagesDirectory = BuildCrankAgent -CrankRepoPath $crankRepoPath
-            InstallCrankAgentTool -LocalPackageSource $packagesDirectory
-        } else {
-            InstallCrankAgentTool
-        }
+        InstallCrankAgentTool        
     }
 
     if ($IsWindows) {
