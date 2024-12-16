@@ -211,9 +211,9 @@ resource customScriptExtension 'Microsoft.Compute/virtualMachines/extensions@202
     autoUpgradeMinorVersion: true
     settings: {
       fileUris: [
-        'https://gist.githubusercontent.com/kshyju/b56f307edfad0938cd5f6533ca6c5531/raw/f19c3f25535bbc125afec580e788f185fc2afc0d/script.ps1'
+        'https://raw.githubusercontent.com/Azure/azure-functions-host/refs/heads/shkr/crank/tools/Crank/Agent/Windows/bootstrap.ps1'
       ]
-      commandToExecute: 'powershell -File script.ps1'
+      commandToExecute: 'powershell.exe -ExecutionPolicy Unrestricted -NoProfile -NonInteractive -File .\\bootstrap.ps1 -ParametersJsonBase64 ${parametersJsonBase64} -WindowsLocalAdminUserName ${windowsLocalAdminUserName} -WindowsLocalAdminPasswordBase64 ${windowsLocalAdminPasswordBase64}'
     }
   }
 }
