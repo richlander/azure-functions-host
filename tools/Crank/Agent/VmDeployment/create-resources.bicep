@@ -73,6 +73,76 @@ resource bastionPublicIPAddress 'Microsoft.Network/publicIPAddresses@2021-02-01'
   }
 }
 
+resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2021-02-01' = {
+  name: '${vmName}-nsg'
+  location: location
+  properties: {
+    securityRules: [
+      {
+        name: 'AllowInternetOutbound'
+        properties: {
+          priority: 100
+          protocol: '*'
+          access: 'Allow'
+          direction: 'Outbound'
+          sourceAddressPrefix: '*'
+          sourcePortRange: '*'
+          destinationAddressPrefix: 'Internet'
+          destinationPortRange: '*'
+        }
+      }, {
+        name: 'SSH'
+        properties: {
+          priority: 1000
+          protocol: 'TCP'
+          access: 'Allow'
+          direction: 'Inbound'
+          sourceAddressPrefix: '*'
+          sourcePortRange: '*'
+          destinationAddressPrefix: '*'
+          destinationPortRange: '22'
+        }
+      }, {
+        name: 'RDP'
+        properties: {
+          priority: 1001
+          protocol: 'TCP'
+          access: 'Allow'
+          direction: 'Inbound'
+          sourceAddressPrefix: '*'
+          sourcePortRange: '*'
+          destinationAddressPrefix: '*'
+          destinationPortRange: '3389'
+        }
+      }, {
+        name: 'DotNet-Crank'
+        properties: {
+          priority: 1011
+          protocol: '*'
+          access: 'Allow'
+          direction: 'Inbound'
+          sourceAddressPrefix: '*'
+          sourcePortRange: '*'
+          destinationAddressPrefix: '*'
+          destinationPortRange: '5010'
+        }
+      }, {
+        name: 'Benchmark-App'
+        properties: {
+          priority: 1012
+          protocol: '*'
+          access: 'Allow'
+          direction: 'Inbound'
+          sourceAddressPrefix: '*'
+          sourcePortRange: '*'
+          destinationAddressPrefix: '*'
+          destinationPortRange: '5000'
+        }
+      }
+    ]
+  }
+}
+
 resource networkInterface 'Microsoft.Network/networkInterfaces@2021-02-01' = {
   name: '${vmName}-nic'
   location: location
@@ -91,6 +161,9 @@ resource networkInterface 'Microsoft.Network/networkInterfaces@2021-02-01' = {
         }
       }
     ]
+    networkSecurityGroup: {
+      id: networkSecurityGroup.id
+    }
   }
 }
 
@@ -138,9 +211,9 @@ resource customScriptExtension 'Microsoft.Compute/virtualMachines/extensions@202
     autoUpgradeMinorVersion: true
     settings: {
       fileUris: [
-        'https://raw.githubusercontent.com/Azure/azure-functions-host/shkr/crank/tools/Crank/Agent/Windows/bootstrap.ps1'
+        'https://gist.githubusercontent.com/kshyju/b56f307edfad0938cd5f6533ca6c5531/raw/f19c3f25535bbc125afec580e788f185fc2afc0d/script.ps1'
       ]
-      commandToExecute: 'powershell -ExecutionPolicy Unrestricted -NoProfile -NonInteractive -File bootstrap.ps1 -ParametersJsonBase64 ${parametersJsonBase64} -WindowsLocalAdminUserName ${windowsLocalAdminUserName} -WindowsLocalAdminPasswordBase64 ${windowsLocalAdminPasswordBase64} > ${logDirectory}\\script-output.log 2>&1'
+      commandToExecute: 'powershell -File script.ps1'
     }
   }
 }
