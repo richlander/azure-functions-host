@@ -203,31 +203,10 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-07-01' = {
   }
 }
 
-resource grantUserRightsExtension 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = if (osType == 'Windows') {
-  name: '${vmName}-grantUserRights'
-  parent: virtualMachine
-  location: location
-  properties: {
-    publisher: 'Microsoft.Compute'
-    type: 'CustomScriptExtension'
-    typeHandlerVersion: '1.10'
-    autoUpgradeMinorVersion: true
-    settings: {
-      fileUris: [
-        'https://raw.githubusercontent.com/Azure/azure-functions-host/refs/heads/shkr/crank/tools/Crank/Agent/Windows/grant-userrights.ps1'
-      ]
-      commandToExecute: 'powershell.exe -ExecutionPolicy Unrestricted -NoProfile -NonInteractive -File .\\grant-userrights.ps1 -UserName ${windowsLocalAdminUserName}'
-    }
-  }
-}
-
 resource customScriptExtension 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = if (osType == 'Windows') {
   name: '${vmName}-bootstrap'
   parent: virtualMachine
   location: location
-  dependsOn: [
-    grantUserRightsExtension
-  ]
   properties: {
     publisher: 'Microsoft.Compute'
     type: 'CustomScriptExtension'
