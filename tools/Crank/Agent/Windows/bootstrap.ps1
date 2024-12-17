@@ -34,8 +34,9 @@ try {
     exit 1
 }
 
+# https://github.com/chocolatey-community/chocolatey-packages/issues/2596#issuecomment-2547451226
 try {
-    & $chocoCmd install -y sysinternals
+    & $chocoCmd install -y sysinternals --version 2024.12.16
     Write-Output "Sysinternals installed successfully."
 } catch {
     Write-Error "Failed to install Sysinternals: $_"
