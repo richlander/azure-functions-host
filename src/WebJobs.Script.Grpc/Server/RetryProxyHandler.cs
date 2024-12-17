@@ -37,6 +37,11 @@ namespace Microsoft.Azure.WebJobs.Script.Grpc
                 {
                     return await base.SendAsync(request, cancellationToken);
                 }
+                catch (TaskCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    _logger.LogInformation("Request was canceled. Stopping retries.");
+                    break;
+                }
                 catch (HttpRequestException) when (attemptCount < MaxRetries)
                 {
                     _logger.LogWarning("Failed to proxy request to the worker. Retrying in {delay}ms. Attempt {attemptCount} of {maxRetries}.",
@@ -57,6 +62,9 @@ namespace Microsoft.Azure.WebJobs.Script.Grpc
                     throw;
                 }
             }
+
+            // If the loop exits without returning, propagate the cancellation
+            cancellationToken.ThrowIfCancellationRequested();
 
             // This should never be reached.
             throw null;
