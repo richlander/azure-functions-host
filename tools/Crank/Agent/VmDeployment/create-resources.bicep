@@ -183,7 +183,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-07-01' = {
       imageReference: {
         publisher: 'MicrosoftWindowsServer'
         offer: 'WindowsServer'
-        sku: '2022-Datacenter-Azure-Edition'
+        sku: '2022-Datacenter'
         version: 'latest'
       }
       osDisk: {
@@ -213,7 +213,7 @@ resource customScriptExtension 'Microsoft.Compute/virtualMachines/extensions@202
       fileUris: [
         'https://raw.githubusercontent.com/Azure/azure-functions-host/refs/heads/shkr/crank/tools/Crank/Agent/Windows/bootstrap.ps1'
       ]
-      commandToExecute: 'powershell.exe -ExecutionPolicy Unrestricted -NoProfile -NonInteractive -File .\\bootstrap.ps1 -ParametersJsonBase64 ${parametersJsonBase64} -WindowsLocalAdminUserName ${windowsLocalAdminUserName} -WindowsLocalAdminPasswordBase64 ${windowsLocalAdminPasswordBase64}'
+      commandToExecute: 'powershell.exe -ExecutionPolicy Unrestricted -NoProfile -NonInteractive -File .\\bootstrap.ps1 -ParametersJsonBase64 ${parametersJsonBase64} -WindowsLocalAdminUserName ${windowsLocalAdminUserName} -WindowsLocalAdminPasswordBase64 ${windowsLocalAdminPasswordBase64} > ${logDirectory}\\script-output.log 2>&1'
     }
   }
 }
