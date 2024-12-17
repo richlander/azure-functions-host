@@ -23,9 +23,8 @@ $env:PATH += ";$env:ProgramFiles\PowerShell\7"
 $githubPath = 'C:\github'
 New-Item -Path $githubPath -ItemType Directory
 Set-Location -Path $githubPath
-& git clone https://github.com/Azure/azure-functions-host.git
+& git clone --single-branch --branch shkr/crank https://github.com/Azure/azure-functions-host.git
 Set-Location -Path azure-functions-host
-& git checkout dev
 
 # Setup Crank agent
 $plaintextPassword = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($WindowsLocalAdminPasswordBase64))
