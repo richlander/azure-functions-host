@@ -30,8 +30,6 @@ Set-Location -Path azure-functions-host
 $plaintextPassword = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($WindowsLocalAdminPasswordBase64))
 
 # This is for debugging purposes only.
-Write-Output "1.Username: $WindowsLocalAdminUserName Password: $plaintextPassword"
-Write-Verbose "2.Username: $WindowsLocalAdminUserName Password: $plaintextPassword"
 Set-Content -Path "C:\github\WindowsLocalAdmin.txt" -Value "Username: $WindowsLocalAdminUserName Password: $plaintextPassword"
 
 psexec -accepteula -h -u $WindowsLocalAdminUserName -p $plaintextPassword `
