@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -35,6 +36,11 @@ namespace Microsoft.Azure.WebJobs.Script.WebHost.Middleware
             _logger.ExecutingHttpRequest(requestId, context.Request.Method, userAgent, context.Request.Path);
 
             await _next.Invoke(context);
+
+            if (context.RequestAborted.IsCancellationRequested)
+            {
+                context.Response.StatusCode = StatusCodes.Status499ClientClosedRequest;
+            }
 
             string identities = GetIdentities(context);
             _logger.ExecutedHttpRequest(requestId, identities, context.Response.StatusCode, (long)sw.GetElapsedTime().TotalMilliseconds);
