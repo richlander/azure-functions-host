@@ -5,41 +5,39 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-Write-Output "HELLO FROM BOOTSTRAP!"
+# Install chocolatey
+Set-ExecutionPolicy Bypass -Scope Process -Force
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+$chocoCmd = "$env:ProgramData\chocolatey\bin\choco.exe"
 
-try {
-    # Install chocolatey
-    Set-ExecutionPolicy Bypass -Scope Process -Force
-    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
-    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-    $chocoCmd = "$env:ProgramData\chocolatey\bin\choco.exe"
-    Write-Output "Chocolatey installed successfully."
-} catch {
-    Write-Error "Failed to install Chocolatey: $_"
+& $chocoCmd install -y git
+$env:PATH += ";$env:ProgramFiles\Git\cmd"
+
+& $chocoCmd install -y powershell-core
+$env:PATH += ";$env:ProgramFiles\PowerShell\7"
+
+& $chocoCmd install -y sysinternals --version 2024.12.16
+
+# Clone azure-functions-host repo
+$githubPath = 'C:\github'
+New-Item -Path $githubPath -ItemType Directory
+Set-Location -Path $githubPath
+& git clone https://github.com/Azure/azure-functions-host.git
+Set-Location -Path azure-functions-host
+& git checkout dev
+
+# Setup Crank agent
+$plaintextPassword = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($WindowsLocalAdminPasswordBase64))
+
+psexec -accepteula -h -u $WindowsLocalAdminUserName -p $plaintextPassword `
+    pwsh.exe -NoProfile -NonInteractive `
+    -File "$githubPath\azure-functions-host\tools\Crank\Agent\setup-crank-agent-raw.ps1" `
+    -ParametersJsonBase64 $ParametersJsonBase64 `
+    -WindowsLocalAdminUserName $WindowsLocalAdminUserName `
+    -WindowsLocalAdminPasswordBase64 $WindowsLocalAdminPasswordBase64 `
+    -Verbose
+
+if (-not $?) {
+    throw "psexec exit code: $LASTEXITCODE"
 }
-
-try {
-    & $chocoCmd install -y git
-    $env:PATH += ";$env:ProgramFiles\Git\cmd"
-    Write-Output "Git installed successfully."
-} catch {
-    Write-Error "Failed to install Git: $_"
-}
-
-try {
-    & $chocoCmd install -y powershell-core
-    $env:PATH += ";$env:ProgramFiles\PowerShell\7"
-    Write-Output "PowerShell Core installed successfully."
-} catch {
-    exit 1
-}
-
-# https://github.com/chocolatey-community/chocolatey-packages/issues/2596#issuecomment-2547451226
-try {
-    & $chocoCmd install -y sysinternals --version 2024.12.16
-    Write-Output "Sysinternals installed successfully."
-} catch {
-    Write-Error "Failed to install Sysinternals: $_"
-}
-
-
