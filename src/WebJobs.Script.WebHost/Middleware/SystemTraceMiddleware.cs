@@ -45,20 +45,13 @@ namespace Microsoft.Azure.WebJobs.Script.WebHost.Middleware
                     context.Response.StatusCode = StatusCodes.Status499ClientClosedRequest;
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when ((ex is OperationCanceledException || ex is IOException) && context.RequestAborted.IsCancellationRequested)
             {
-                if ((ex is OperationCanceledException || ex is IOException) && context.RequestAborted.IsCancellationRequested)
-                {
-                    _logger.RequestAborted(requestId);
+                _logger.RequestAborted(requestId);
 
-                    if (!context.Response.HasStarted)
-                    {
-                        context.Response.StatusCode = StatusCodes.Status499ClientClosedRequest;
-                    }
-                }
-                else
+                if (!context.Response.HasStarted)
                 {
-                    throw;
+                    context.Response.StatusCode = StatusCodes.Status499ClientClosedRequest;
                 }
             }
 
