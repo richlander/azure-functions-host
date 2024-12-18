@@ -49,6 +49,9 @@ $env:PATH += ";$env:ProgramFiles\PowerShell\7"
 
 & $chocoCmd install -y sysinternals --version 2024.12.16
 
+& $chocoCmd install -y dotnet-sdk --version="8.0.100"
+& $chocoCmd install -y dotnet-sdk --version="9.0.100"
+
 # Clone azure-functions-host repo
 $githubPath = 'C:\github'
 New-Item -Path $githubPath -ItemType Directory
