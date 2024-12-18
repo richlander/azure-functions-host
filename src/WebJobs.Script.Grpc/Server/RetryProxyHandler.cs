@@ -39,7 +39,7 @@ namespace Microsoft.Azure.WebJobs.Script.Grpc
                 }
                 catch (TaskCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
-                    _logger.LogInformation("Request was canceled. Stopping retries.");
+                    _logger.LogDebug("Request was canceled. Stopping retries.");
                     break;
                 }
                 catch (HttpRequestException) when (attemptCount < MaxRetries)
