@@ -6,30 +6,34 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# Define the right to be granted
-$right = "SeServiceLogonRight"
+# The user should have "Log on as a service" right to run psexec".
 
-# Path to the temporary security template file
-$templatePath = "C:\Temp\SecurityTemplate.inf"
+$tempFilePath = "C:\temp\secpol.cfg"
 
-# Create the security template file
-@"
-[Unicode]
-Unicode=yes
-[Version]
-signature="\$CHICAGO\$"
-Revision=1
-[Privilege Rights]
-$right = *$WindowsLocalAdminUserName
-"@ | Out-File -FilePath $templatePath -Encoding Unicode
+if (!(Test-Path -Path "C:\temp")) { New-Item -Path "C:\temp" -ItemType Directory | Out-Null }
 
-# Apply the security template
-secedit /configure /db secedit.sdb /cfg $templatePath /areas USER_RIGHTS
+try {
+    # Export current security policy
+    secedit /export /cfg $tempFilePath
+    if (!(Test-Path -Path $tempFilePath)) { throw "Failed to export security policy." }
 
-# Clean up
-Remove-Item -Path $templatePath
+    # Read and update 'SeServiceLogonRight'
+    $content = Get-Content $tempFilePath
+    $entry = $content | Where-Object { $_ -match "^SeServiceLogonRight\s*=" }
+    $updatedContent = if ($entry) {
+        $values = ($entry -split "=")[1].Trim()
+        if ($values -notmatch "\b$WindowsLocalAdminUserName\b") { $content -replace "^SeServiceLogonRight\s*=.*", "SeServiceLogonRight = $values,$WindowsLocalAdminUserName" } else { return }
+    } else { $content + "`r`nSeServiceLogonRight = $WindowsLocalAdminUserName" }
 
-Write-Output "Logon as a service right granted to $WindowsLocalAdminUserName"
+    # Apply updated security policy
+    $updatedContent | Set-Content $tempFilePath
+    secedit /configure /db secedit.sdb /cfg $tempFilePath /areas USER_RIGHTS
+    Write-Host "Successfully added 'Log on as a service' right for user '$WindowsLocalAdminUserName'." -ForegroundColor Green
+} catch {
+    Write-Host "An error occurred: $_" -ForegroundColor Red
+} finally {
+    if (Test-Path -Path $tempFilePath) { Remove-Item -Path $tempFilePath -Force }
+}
 
 # Install chocolatey
 Set-ExecutionPolicy Bypass -Scope Process -Force
