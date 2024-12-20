@@ -10,6 +10,9 @@ param (
     [string]
     $BaseName ='1',
 
+    [string[]]
+    $NamePostfixes = @('-app', '-load'),
+
     [Parameter(Mandatory = $true)]
     [ValidateSet('Linux', 'Windows')]
     $OsType ='Windows',
@@ -27,28 +30,24 @@ param (
     $Location = 'West Central US',
 
     [string]
-    $UserName = 'Functions',
-
-    [Parameter(Mandatory = $true)]
-    [string]
-    $Password
+    $UserName = 'Functions'
 )
 
 $ErrorActionPreference = 'Stop'
 
 # Call deploy-vm.ps1 with "app" as the value of NamePostfix
-& "$PSScriptRoot/deploy-vm.ps1" `
-    -SubscriptionName $SubscriptionName `
-    -BaseName $BaseName `
-    -NamePostfix $NamePostfix `
-    -OsType $OsType `
-    -VmSize $VmSize `
-    -OsDiskType $OsDiskType `
-    -Location $Location `
-    -UserName $UserName `
-    -Password $Password `
-    -Verbose:$VerbosePreference
-
+foreach ($postfix in $NamePostfixes) {
+    & "$PSScriptRoot/deploy-vm.ps1" `
+        -SubscriptionName $SubscriptionName `
+        -BaseName $BaseName `
+        -NamePostfix $postfix `
+        -OsType $OsType `
+        -VmSize $VmSize `
+        -OsDiskType $OsDiskType `
+        -Location $Location `
+        -UserName $UserName `
+        -Verbose:$VerbosePreference
+}
 # TODO: remove this warning when app deployment is automated
 $appPath = if ($OsType -eq 'Linux') { "/home/$UserName/FunctionApps" } else { 'C:\FunctionApps' }
 Write-Warning "Remember to deploy the Function apps to $appPath"

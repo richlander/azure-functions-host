@@ -46,7 +46,7 @@ $ErrorActionPreference = 'Stop'
 #region Utilities
 
 function InstallCrankController {
-    dotnet tool install -g Microsoft.Crank.Controller --version "0.1.0-*"
+    dotnet tool install -g Microsoft.Crank.Controller --version "0.2.0-*"
 }
 
 function UninstallCrankController {

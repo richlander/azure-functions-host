@@ -20,17 +20,23 @@ param windowsLocalAdminUserName string
 @description('Base64 encoded Windows local admin password')
 param windowsLocalAdminPasswordBase64 string
 
-@description('The directory where the logs will be stored')
-param logDirectory string = 'C:\\CrankDeploymentLogs'
-
 @description('The name of the Azure Bastion resource')
 param bastionName string = '${vmName}-bastion'
 
 @description('The operating system type')
 param osType string = 'Windows'
 
+@description('The name of the virtual network')
+param virtualNetworkName string = '${vmName}-vnet'
+
+@description('The name of the subnet')
+param subnetName string = 'default'
+
+@description('The name of the network security group')
+param networkSecurityGroupName string = '${vmName}-nsg'
+
 resource virtualNetwork 'Microsoft.Network/virtualNetworks@2021-02-01' = {
-  name: '${vmName}-vnet'
+  name: virtualNetworkName
   location: location
   properties: {
     addressSpace: {
@@ -42,7 +48,7 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2021-02-01' = {
 }
 
 resource subnet 'Microsoft.Network/virtualNetworks/subnets@2021-02-01' = {
-  name: 'default'
+  name: subnetName
   parent: virtualNetwork
   properties: {
     addressPrefix: '10.0.0.0/24'
@@ -62,6 +68,9 @@ resource publicIPAddress 'Microsoft.Network/publicIPAddresses@2021-02-01' = {
   location: location
   properties: {
     publicIPAllocationMethod: 'Dynamic'
+    dnsSettings: {
+      domainNameLabel: vmName
+    }
   }
 }
 
@@ -77,7 +86,7 @@ resource bastionPublicIPAddress 'Microsoft.Network/publicIPAddresses@2021-02-01'
 }
 
 resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2021-02-01' = {
-  name: '${vmName}-nsg'
+  name: networkSecurityGroupName
   location: location
   properties: {
     securityRules: [
@@ -240,3 +249,7 @@ resource bastionHost 'Microsoft.Network/bastionHosts@2021-05-01' = {
     ]
   }
 }
+
+output adminUsername string = adminUsername
+output hostname string = publicIPAddress.properties.dnsSettings.fqdn
+output sshCommand string = 'ssh ${adminUsername}@${publicIPAddress.properties.dnsSettings.fqdn}'

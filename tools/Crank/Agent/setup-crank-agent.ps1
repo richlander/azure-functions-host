@@ -2,7 +2,7 @@
 
 [CmdletBinding()]
 param (
-    [bool]$InstallDotNet = $true,
+    [bool]$InstallDotNet = $false,
     [bool]$InstallCrankAgent = $true,
     [string]$CrankBranch,
     [bool]$Docker = $false,
@@ -92,9 +92,8 @@ function CloneCrankRepo {
 }
 
 function InstallCrankAgent {
-    $crankRepoPath = CloneCrankRepo
-
     if ($Docker) {
+        $crankRepoPath = CloneCrankRepo
         Push-Location $crankRepoPath/docker/agent
         try {
             # Build the docker-agent image
