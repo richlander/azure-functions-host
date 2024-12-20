@@ -67,7 +67,8 @@ $directories = Get-ChildItem -Path $benchmarkAppsPath -Directory
 # Loop through each directory and publish the app
 foreach ($dir in $directories) {
     $appName = $dir.Name
-    $publishOutputDir = Join-Path -Path $publishOutputRoodDirectory -ChildPath $appName   
+    $publishOutputDir = Join-Path -Path $publishOutputRoodDirectory -ChildPath $appName
+    Write-Host "Publishing to " $publishOutputDir
     dotnet publish -c Release -o $publishOutputDir $dir.FullName
 }
 
