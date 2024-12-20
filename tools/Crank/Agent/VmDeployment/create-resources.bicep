@@ -20,9 +20,6 @@ param windowsLocalAdminUserName string
 @description('Base64 encoded Windows local admin password')
 param windowsLocalAdminPasswordBase64 string
 
-@description('The name of the Azure Bastion resource')
-param bastionName string = '${vmName}-bastion'
-
 @description('The operating system type')
 param osType string = 'Windows'
 
@@ -55,14 +52,6 @@ resource subnet 'Microsoft.Network/virtualNetworks/subnets@2021-02-01' = {
   }
 }
 
-resource bastionSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-02-01' = {
-  name: 'AzureBastionSubnet'
-  parent: virtualNetwork
-  properties: {
-    addressPrefix: '10.0.1.0/24'
-  }
-}
-
 resource publicIPAddress 'Microsoft.Network/publicIPAddresses@2021-02-01' = {
   name: '${vmName}-pip'
   location: location
@@ -71,17 +60,6 @@ resource publicIPAddress 'Microsoft.Network/publicIPAddresses@2021-02-01' = {
     dnsSettings: {
       domainNameLabel: vmName
     }
-  }
-}
-
-resource bastionPublicIPAddress 'Microsoft.Network/publicIPAddresses@2021-02-01' = {
-  name: '${bastionName}-pip'
-  location: location
-  sku: {
-    name: 'Standard'
-  }
-  properties: {
-    publicIPAllocationMethod: 'Static'
   }
 }
 
@@ -101,18 +79,6 @@ resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2021-02-0
           sourcePortRange: '*'
           destinationAddressPrefix: 'Internet'
           destinationPortRange: '*'
-        }
-      }, {
-        name: 'SSH'
-        properties: {
-          priority: 1000
-          protocol: 'TCP'
-          access: 'Allow'
-          direction: 'Inbound'
-          sourceAddressPrefix: '*'
-          sourcePortRange: '*'
-          destinationAddressPrefix: '*'
-          destinationPortRange: '22'
         }
       }, {
         name: 'RDP'
@@ -230,26 +196,7 @@ resource customScriptExtension 'Microsoft.Compute/virtualMachines/extensions@202
   }
 }
 
-resource bastionHost 'Microsoft.Network/bastionHosts@2021-05-01' = {
-  name: bastionName
-  location: location
-  properties: {
-    ipConfigurations: [
-      {
-        name: 'bastionHostIpConfiguration'
-        properties: {
-          subnet: {
-            id: bastionSubnet.id
-          }
-          publicIPAddress: {
-            id: bastionPublicIPAddress.id
-          }
-        }
-      }
-    ]
-  }
-}
-
 output adminUsername string = adminUsername
 output hostname string = publicIPAddress.properties.dnsSettings.fqdn
 output sshCommand string = 'ssh ${adminUsername}@${publicIPAddress.properties.dnsSettings.fqdn}'
+
