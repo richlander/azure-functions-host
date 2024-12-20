@@ -33,6 +33,9 @@ namespace Microsoft.Azure.WebJobs.Script.WebHost.Models
         [JsonProperty("TokenServiceApiEndpoint")]
         public string TokenServiceApiEndpoint { get; set; }
 
+        [JsonProperty("CertificateValidationToken")]
+        public string CertificateValidationToken { get; set; }
+
         [JsonProperty("CorsSpecializationPayload")]
         public CorsSettings CorsSettings { get; set; }
 
@@ -163,6 +166,25 @@ namespace Microsoft.Azure.WebJobs.Script.WebHost.Models
                     logger.LogDebug($"ApplyAppSettings operating on existing {EnvironmentSettingNames.EasyAuthEnabled} = {environment.GetEnvironmentVariable(EnvironmentSettingNames.EasyAuthEnabled)}");
                 }
                 environment.SetEnvironmentVariable(EnvironmentSettingNames.EasyAuthClientId, EasyAuthSettings.SiteAuthClientId);
+            }
+        }
+
+        public void WriteCertificateValidationToken(ILogger logger)
+        {
+            if (!string.IsNullOrEmpty(CertificateValidationToken))
+            {
+                try
+                {
+                    if (!System.IO.Directory.Exists("/tmp"))
+                    {
+                        System.IO.Directory.CreateDirectory("/tmp");
+                    }
+                    System.IO.File.WriteAllText("/tmp/domainvalidation", CertificateValidationToken);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError($"Failed to write certificate validation token: { ex.Message}");
+                }
             }
         }
     }
