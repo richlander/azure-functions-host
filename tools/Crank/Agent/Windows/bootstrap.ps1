@@ -66,12 +66,46 @@ $directories = Get-ChildItem -Path $benchmarkAppsPath -Directory
 $publishOutputRoodDirectory = 'C:\FunctionApps'
 New-Item -Path $publishOutputRoodDirectory -ItemType Directory -Force
 
+# Define the log file path
+$logFilePath = "$publishOutputRoodDirectory\publish.log"
+
+# Function to write log messages to a file
+function Write-Log {
+    param (
+        [string]$message
+    )
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $logMessage = "$timestamp - $message"
+    Add-Content -Path $logFilePath -Value $logMessage
+}
+
+Write-Log "Child directory count inside $benchmarkAppsPath : $($directories.Count)"
+
 # Loop through each directory and publish the app
 foreach ($dir in $directories) {
     $appName = $dir.Name
+    Write-Log "Processing $appName"
+
+    # Find the .csproj or .sln file within the directory
+    $projectFile = Get-ChildItem -Path $dir.FullName -Filter *.csproj -Recurse -File | Select-Object -First 1
+    if (-not $projectFile) {
+        Write-Log "No project file (.csproj) found in $appName"
+        Write-Host "No project file (.csproj) found in $appName"
+        continue
+    }
+
     $publishOutputDir = Join-Path -Path $publishOutputRoodDirectory -ChildPath $appName
-    Write-Host "Publishing to " $publishOutputDir
-    dotnet publish -c Release -o $publishOutputDir $dir.FullName
+    Write-Host "Publishing $($projectFile.FullName) to $publishOutputDir"
+    Write-Log "Publishing $($projectFile.FullName) to $publishOutputDir"
+
+    # Publish the app with the correct project file
+    try {
+        dotnet publish -c Release -o $publishOutputDir $projectFile.FullName
+        Write-Log "Successfully published $appName"
+    } catch {
+        Write-Log "Failed to publish $appName. Error: $_"
+        Write-Host "Failed to publish $appName. Error: $_"
+    }
 }
 
 # Setup Crank agent
