@@ -61,8 +61,10 @@ Set-Location -Path azure-functions-host
 
 # Publish dotnet function apps.
 $benchmarkAppsPath = "$githubPath\azure-functions-host\tools\Crank\BenchmarkApps\Dotnet";
-$publishOutputRoodDirectory = 'C:\FunctionApps'
 $directories = Get-ChildItem -Path $benchmarkAppsPath -Directory
+
+$publishOutputRoodDirectory = 'C:\FunctionApps'
+New-Item -Path $publishOutputRoodDirectory -ItemType Directory -Force
 
 # Loop through each directory and publish the app
 foreach ($dir in $directories) {
