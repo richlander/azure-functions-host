@@ -64,10 +64,14 @@ Set-Location -Path azure-functions-host
 
 # Publish dotnet function apps.
 $benchmarkAppsPath = "$githubPath\azure-functions-host\tools\Crank\BenchmarkApps\Dotnet";
-$directories = Get-ChildItem -Path $benchmarkAppsPath -Directory
-
+$tempDirectory = 'C:\temp\BenchmarkApps'
 $publishOutputRootDirectory = 'C:\FunctionApps'
 New-Item -Path $publishOutputRootDirectory -ItemType Directory -Force
+
+# copy the apps to temp directory for publishing so that the host global.json .NET SDK version doesn't interfere with the publish.
+Copy-Item -Path $benchmarkAppsPath -Destination $tempDirectory -Recurse
+
+$directories = Get-ChildItem -Path $tempDirectory -Directory
 
 # Define the log file path
 $logFilePath = "$publishOutputRootDirectory\publish.log"
@@ -104,7 +108,7 @@ foreach ($dir in $directories) {
 
         # Publish the app with the correct project file
 
-        dotnet publish -c Release -o $publishOutputDir $projectFile.FullName
+        dotnet publish -c Release -o $publishOutputDir -p:UseAppHost=false $projectFile.FullName
         Write-Log "Successfully published $appName"
     }
     catch {
