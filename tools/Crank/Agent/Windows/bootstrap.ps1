@@ -23,15 +23,18 @@ try {
     $updatedContent = if ($entry) {
         $values = ($entry -split "=")[1].Trim()
         if ($values -notmatch "\b$WindowsLocalAdminUserName\b") { $content -replace "^SeServiceLogonRight\s*=.*", "SeServiceLogonRight = $values,$WindowsLocalAdminUserName" } else { return }
-    } else { $content + "`r`nSeServiceLogonRight = $WindowsLocalAdminUserName" }
+    }
+    else { $content + "`r`nSeServiceLogonRight = $WindowsLocalAdminUserName" }
 
     # Apply updated security policy
     $updatedContent | Set-Content $tempFilePath
     secedit /configure /db secedit.sdb /cfg $tempFilePath /areas USER_RIGHTS
     Write-Host "Successfully added 'Log on as a service' right for user '$WindowsLocalAdminUserName'." -ForegroundColor Green
-} catch {
+}
+catch {
     Write-Host "An error occurred: $_" -ForegroundColor Red
-} finally {
+}
+finally {
     if (Test-Path -Path $tempFilePath) { Remove-Item -Path $tempFilePath -Force }
 }
 
@@ -63,11 +66,11 @@ Set-Location -Path azure-functions-host
 $benchmarkAppsPath = "$githubPath\azure-functions-host\tools\Crank\BenchmarkApps\Dotnet";
 $directories = Get-ChildItem -Path $benchmarkAppsPath -Directory
 
-$publishOutputRoodDirectory = 'C:\FunctionApps'
-New-Item -Path $publishOutputRoodDirectory -ItemType Directory -Force
+$publishOutputRootDirectory = 'C:\FunctionApps'
+New-Item -Path $publishOutputRootDirectory -ItemType Directory -Force
 
 # Define the log file path
-$logFilePath = "$publishOutputRoodDirectory\publish.log"
+$logFilePath = "$publishOutputRootDirectory\publish.log"
 
 # Function to write log messages to a file
 function Write-Log {
@@ -86,23 +89,25 @@ foreach ($dir in $directories) {
     $appName = $dir.Name
     Write-Log "Processing $appName"
 
-    # Find the .csproj or .sln file within the directory
-    $projectFile = Get-ChildItem -Path $dir.FullName -Filter *.csproj -Recurse -File | Select-Object -First 1
-    if (-not $projectFile) {
-        Write-Log "No project file (.csproj) found in $appName"
-        Write-Host "No project file (.csproj) found in $appName"
-        continue
-    }
-
-    $publishOutputDir = Join-Path -Path $publishOutputRoodDirectory -ChildPath $appName
-    Write-Host "Publishing $($projectFile.FullName) to $publishOutputDir"
-    Write-Log "Publishing $($projectFile.FullName) to $publishOutputDir"
-
-    # Publish the app with the correct project file
     try {
+        # Find the .csproj or .sln file within the directory
+        $projectFile = Get-ChildItem -Path $dir.FullName -Filter *.csproj -Recurse -File | Select-Object -First 1
+        if (-not $projectFile) {
+            Write-Log "No project file (.csproj) found in $appName"
+            Write-Host "No project file (.csproj) found in $appName"
+            continue
+        }
+
+        $publishOutputDir = Join-Path -Path $publishOutputRootDirectory -ChildPath $appName
+        Write-Host "Publishing $($projectFile.FullName) to $publishOutputDir"
+        Write-Log "Publishing $($projectFile.FullName) to $publishOutputDir"
+
+        # Publish the app with the correct project file
+
         dotnet publish -c Release -o $publishOutputDir $projectFile.FullName
         Write-Log "Successfully published $appName"
-    } catch {
+    }
+    catch {
         Write-Log "Failed to publish $appName. Error: $_"
         Write-Host "Failed to publish $appName. Error: $_"
     }
