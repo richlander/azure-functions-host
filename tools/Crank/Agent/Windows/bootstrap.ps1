@@ -62,6 +62,7 @@ Set-Location -Path $githubPath
 & git clone --single-branch --branch shkr/crank https://github.com/Azure/azure-functions-host.git
 Set-Location -Path azure-functions-host
 
+$originalLocation = Get-Location
 # Publish dotnet function apps.
 $benchmarkAppsPath = "$githubPath\azure-functions-host\tools\Crank\BenchmarkApps\Dotnet";
 $tempDirectory = 'C:\temp\BenchmarkApps'
@@ -106,9 +107,10 @@ foreach ($dir in $directories) {
         Write-Host "Publishing $($projectFile.FullName) to $publishOutputDir"
         Write-Log "Publishing $($projectFile.FullName) to $publishOutputDir"
 
-        # Publish the app with the correct project file
+        Set-Location -Path (Split-Path -Path $projectFile.FullName -Parent)
+        # Publish the app
+        dotnet publish -c Release -o $publishOutputDir
 
-        dotnet publish -c Release -o $publishOutputDir -p:UseAppHost=false $projectFile.FullName
         Write-Log "Successfully published $appName"
     }
     catch {
@@ -116,6 +118,7 @@ foreach ($dir in $directories) {
         Write-Host "Failed to publish $appName. Error: $_"
     }
 }
+Set-Location -Path $originalLocation
 
 # Setup Crank agent
 $plaintextPassword = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($WindowsLocalAdminPasswordBase64))
