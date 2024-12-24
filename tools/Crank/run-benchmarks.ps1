@@ -17,6 +17,9 @@ param(
     $FunctionApp = 'HelloApp',
 
     [string]
+    $FunctionsWorkerRuntime = 'dotnet-isolated',
+
+    [string]
     $InvokeCrankCommand,
 
     [switch]
@@ -32,10 +35,10 @@ param(
     $Trace = $false,
 
     [int]
-    $Duration = 1,
+    $Duration = 15,
 
     [int]
-    $Warmup = 1,
+    $Warmup = 15,
 
     [int]
     $Iterations = 1
@@ -104,6 +107,7 @@ try {
         '--variable', "CrankAgentAppVm=$CrankAgentAppVm",
         '--variable', "CrankAgentLoadVm=$CrankAgentLoadVm",
         '--variable', "FunctionAppPath=`"$functionAppPath`"",
+        '--variable', "FunctionsWorkerRuntime=`"$FunctionsWorkerRuntime`"",
         '--variable', "HomePath=`"$homePath`"",
         '--variable', "TempLogPath=`"$tmpLogPath`"",
         '--variable', "BranchOrCommit=$BranchOrCommit",
